@@ -1,5 +1,10 @@
 package net.donut.fxbetterdynmap;
 
+import net.prosavage.factionsx.FactionsX;
+import net.prosavage.factionsx.core.Faction;
+import net.prosavage.factionsx.addonframework.Addon;
+import net.prosavage.factionsx.manager.FactionManager;
+
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -7,7 +12,7 @@ import org.bukkit.plugin.Plugin;
 import org.dynmap.DynmapAPI;
 import org.dynmap.markers.*;
 
-import net.prosavage.factionsx.addonframework.Addon;
+import java.util.Set;
 
 /** Based off SaberFactions Dynmap code (https://github.com/SaberLLC/Saber-Factions/blob/1.6.x/src/main/java/com/massivecraft/factions/integration/dynmap/EngineDynmap.java),
  * Modified to work as a FactionsX addon
@@ -32,13 +37,16 @@ public class BetterDynmapEngine {
 
     public DynmapAPI dynmapApi;
     public MarkerAPI markerApi;
-    public MarkerSet markerset;
+    public MarkerSet markerSet;
+    public MarkerIcon markerIcon;
 
+    public FactionsX factionsX;
+    public Faction faction;
+    public FactionManager factionManager;
     public Addon fxapi;
 
     public void init() {
         Plugin dynmap = Bukkit.getServer().getPluginManager().getPlugin("dynmap");
-
         if (dynmap == null || !dynmap.isEnabled()) {
             fxapi.logColored("Failed to find dynmap or it is disabled.");
             return;
@@ -60,6 +68,16 @@ public class BetterDynmapEngine {
             fxapi.logColored("Could not retrieve the MarkerAPI.");
             return false;
         }
+
+        return true;
+    }
+
+    public boolean updateHomes() {
+        fxapi.logColored("Updating Faction Homes.");
+        Set<Faction> factions = factionManager.getFactions();
+        fxapi.logColored("Retrieved factions: "+factions);
+        markerApi.createMarkerSet("Homes", "Faction Homes", null,true );
+
 
         return true;
     }

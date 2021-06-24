@@ -15,18 +15,12 @@ public class FXBetterDynmap extends Addon {
         return instance;
         // what???
     }
-
-    private static CmdTest cmdTest = new CmdTest();
-    private static MarkMe markMe = new MarkMe();
     private static DynmapColor dynmapColor = new DynmapColor();
-
 
     @Override
     protected void onEnable() {
         logColored("Initializing BetterDynmap for FactionsX");
         instance = this;
-        FactionsX.baseCommand.addSubCommand(cmdTest);
-        FactionsX.baseCommand.addSubCommand(markMe);
         FactionsX.baseCommand.addSubCommand(dynmapColor);
         Conf.load(this);
     }
@@ -34,8 +28,6 @@ public class FXBetterDynmap extends Addon {
     @Override
     protected void onDisable() {
         logColored("Disabling BetterDynmap for FactionsX");
-        FactionsX.baseCommand.removeSubCommand(cmdTest);
-        FactionsX.baseCommand.removeSubCommand(markMe);
         FactionsX.baseCommand.removeSubCommand(dynmapColor);
         // this is actually a really cool api
         // Load first to read changes from file, then save.
