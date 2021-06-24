@@ -15,6 +15,7 @@ public class Conf {
     public static String funnyWordToSayOnCommand = "funny word!";
 
     public static String dynmapColorHelpInfo = "Changes your faction's color on the dynmap.";
+    public static String dynmapColorPermissonDenied = "Permisson Denied.";
 
     // Region Style
     public static final transient String DYNMAP_STYLE_LINE_COLOR = "#00FF00";
