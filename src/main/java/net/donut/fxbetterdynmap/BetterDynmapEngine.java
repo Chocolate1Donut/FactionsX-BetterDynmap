@@ -7,6 +7,8 @@ import org.bukkit.plugin.Plugin;
 import org.dynmap.DynmapAPI;
 import org.dynmap.markers.*;
 
+import net.prosavage.factionsx.addonframework.Addon;
+
 /** Based off SaberFactions Dynmap code (https://github.com/SaberLLC/Saber-Factions/blob/1.6.x/src/main/java/com/massivecraft/factions/integration/dynmap/EngineDynmap.java),
  * Modified to work as a FactionsX addon
  * By Donut */
@@ -32,35 +34,34 @@ public class BetterDynmapEngine {
     public MarkerAPI markerApi;
     public MarkerSet markerset;
 
+    public Addon fxapi;
+
     public void init() {
         Plugin dynmap = Bukkit.getServer().getPluginManager().getPlugin("dynmap");
 
         if (dynmap == null || !dynmap.isEnabled()) {
-            severe("Failed to find dynmap or it is disabled.");
+            fxapi.logColored("Failed to find dynmap or it is disabled.");
             return;
         }
     }
 
     public boolean updateCore() {
-        severe("Updating Core");
+        fxapi.logColored("Updating Core");
         // Get DynmapAPI
         this.dynmapApi = (DynmapAPI) Bukkit.getPluginManager().getPlugin("dynmap");
         if (this.dynmapApi == null) {
-            severe("Could not retrieve the DynmapAPI.");
+            fxapi.logColored("Could not retrieve the DynmapAPI.");
             return false;
         }
 
         // Get MarkerAPI
         this.markerApi = this.dynmapApi.getMarkerAPI();
         if (this.markerApi == null) {
-            severe("Could not retrieve the MarkerAPI.");
+            fxapi.logColored("Could not retrieve the MarkerAPI.");
             return false;
         }
 
         return true;
     }
 
-    public static void severe(String msg) {
-        System.out.println(DYNMAP_INTEGRATION + ChatColor.RED.toString() + msg);
-    }
 }
