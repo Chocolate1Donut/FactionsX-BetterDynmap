@@ -14,7 +14,15 @@ public class FXBetterDynmap extends Addon {
     public static FXBetterDynmap getInstance() {
         return instance;
         // what???
+        
+        /* Note by Jack: this code block is creating an instance of the FXBetterDynamp class inside itself on line 12. It probably shouldn't do this because it is recursively 
+        *  creating instances an infinite amount of times as is. Line 13 is a list of datatype FPlayer called onlineFPlayers and is fetching the set of online players with getOnlineFPlayers().
+        *  public static FXBetterDynmap getInstance() {return instance} is necessary because the object defined in line 12 is private meaning it cannot be accesed directly from 
+        *  external classes and must have a public method to fetch or "get" it, hence the name getInstance. 
+        */
     }
+    
+    //Dynmap color object initialized as a new Dynmap color object
     private static DynmapColor dynmapColor = new DynmapColor();
 
     @Override
