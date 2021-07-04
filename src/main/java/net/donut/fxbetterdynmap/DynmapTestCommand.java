@@ -3,14 +3,12 @@ package net.donut.fxbetterdynmap;
 import net.prosavage.factionsx.command.engine.CommandInfo;
 import net.prosavage.factionsx.command.engine.CommandRequirementsBuilder;
 import net.prosavage.factionsx.command.engine.FCommand;
-import net.prosavage.factionsx.core.BankAction;
-import net.prosavage.factionsx.core.Faction;
 
-public class DynmapColor extends FCommand {
-    public DynmapColor() {
+public class DynmapTestCommand extends FCommand {
+    public DynmapTestCommand() {
 
-        getAliases().add("dynmapcolor");
-        getAliases().add("customcolor");
+        getAliases().add("t");
+        getAliases().add("dyntest");
 
         // The commandRequirements pre-check common things for you, the official way.
         // For example we could add #asFactionMember(true) if we want to make sure they're a faction member.
@@ -22,9 +20,11 @@ public class DynmapColor extends FCommand {
     }
 
     public boolean execute(CommandInfo info) {
-        info.message("executing dynmap color command, since you met the requirements.");
-        EngineBetterDynmap dynEngine = EngineBetterDynmap.getInstance();
-        dynEngine.init();
+        info.message("Testing dynmap command, check dynmap.");
+        //EngineBetterDynmap dynEngine = EngineBetterDynmap.getInstance();
+        //dynEngine.init();
+        DynmapTestEngine dynmapTestEngine = DynmapTestEngine.getInstance();
+        dynmapTestEngine.init();
         return true;
     }
 
@@ -34,4 +34,6 @@ public class DynmapColor extends FCommand {
     public String getHelpInfo() {
         return Conf.dynmapColorHelpInfo;
     }
+
 }
+

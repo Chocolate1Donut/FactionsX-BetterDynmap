@@ -1,8 +1,9 @@
-package net.donut.fxbetterdynmap;
+package net.donut.dynmaplibrary;
 
 
 //import com.massivecraft.factions.Conf;
 
+import net.donut.fxbetterdynmap.Conf;
 import org.dynmap.markers.Marker;
 import org.dynmap.markers.MarkerAPI;
 import org.dynmap.markers.MarkerIcon;

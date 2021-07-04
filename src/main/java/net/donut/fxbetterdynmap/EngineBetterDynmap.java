@@ -4,24 +4,24 @@ package net.donut.fxbetterdynmap;
 //import com.massivecraft.factions.struct.Role;
 //import com.massivecraft.factions.zcore.persist.MemoryBoard;
 
+import net.donut.dynmaplibrary.DynmapStyle;
+import net.donut.dynmaplibrary.TempAreaMarker;
+import net.donut.dynmaplibrary.TempMarker;
+import net.donut.dynmaplibrary.TempMarkerSet;
 import net.prosavage.factionsx.FactionsX;
 import net.prosavage.factionsx.core.*;
 import net.prosavage.factionsx.manager.FactionManager;
 import net.prosavage.factionsx.persist.data.FLocation;
 import net.prosavage.factionsx.persist.data.wrappers.DataLocation;
 import net.prosavage.factionsx.persist.config.Config;
-import net.prosavage.factionsx.core.FactionRoles;
-import net.prosavage.factionsx.manager.GridManager;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.Location;
 import org.bukkit.plugin.Plugin;
 import org.dynmap.DynmapAPI;
 import org.dynmap.markers.*;
 import org.dynmap.utils.TileFlags;
 
-import javax.management.relation.Role;
 import java.awt.*;
 import java.util.List;
 import java.util.*;
@@ -58,18 +58,17 @@ public class EngineBetterDynmap {
     // -------------------------------------------- //
 
     private static final EngineBetterDynmap i = new EngineBetterDynmap();
+    public static EngineBetterDynmap getInstance() {
+        return i;
+    }
+    private EngineBetterDynmap() {
+    }
+
     public DynmapAPI dynmapApi;
     public MarkerAPI markerApi;
     public MarkerSet markerset;
 
     List<List<Point>> polyLine = new ArrayList<>();
-
-    private EngineBetterDynmap() {
-    }
-
-    public static EngineBetterDynmap getInstance() {
-        return i;
-    }
 
     public static String getHtmlPlayerString(Collection<FPlayer> playersOfficersList) {
         StringBuilder ret = new StringBuilder();

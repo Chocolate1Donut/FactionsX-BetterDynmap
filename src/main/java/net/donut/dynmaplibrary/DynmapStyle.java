@@ -1,4 +1,6 @@
-package net.donut.fxbetterdynmap;
+package net.donut.dynmaplibrary;
+
+import net.donut.fxbetterdynmap.Conf;
 
 public class DynmapStyle {
 

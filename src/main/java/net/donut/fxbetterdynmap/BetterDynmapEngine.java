@@ -1,28 +1,28 @@
 package net.donut.fxbetterdynmap;
 
+import net.donut.dynmaplibrary.TempMarkerSet;
 import net.prosavage.factionsx.FactionsX;
 import net.prosavage.factionsx.core.Faction;
 import net.prosavage.factionsx.addonframework.Addon;
 import net.prosavage.factionsx.manager.FactionManager;
 
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Location;
 import org.bukkit.plugin.Plugin;
+
 import org.dynmap.DynmapAPI;
 import org.dynmap.markers.*;
+import org.dynmap.DynmapCore;
+import org.dynmap.*;
 
 import java.util.Set;
 
 /** Based off SaberFactions Dynmap code (https://github.com/SaberLLC/Saber-Factions/blob/1.6.x/src/main/java/com/massivecraft/factions/integration/dynmap/EngineDynmap.java),
  * Modified to work as a FactionsX addon
- * By Donut */
+ * By Chocolate1Donut */
 
 public class BetterDynmapEngine {
 
     public final static int BLOCKS_PER_CHUNK = 16;
-
-    public final static String DYNMAP_INTEGRATION = "\u00A7dFactionsX-BetterDynmap:\u00A7e";
 
     public final static String FACTIONS = "factions";
     public final static String FACTIONS_ = FACTIONS + "_";
@@ -39,6 +39,8 @@ public class BetterDynmapEngine {
     public MarkerAPI markerApi;
     public MarkerSet markerSet;
     public MarkerIcon markerIcon;
+    public DynmapCore dyncore;
+    public DynmapCommonAPI dynmapCommonAPI;
 
     public FactionsX factionsX;
     public Faction faction;
@@ -50,6 +52,10 @@ public class BetterDynmapEngine {
         if (dynmap == null || !dynmap.isEnabled()) {
             fxapi.logColored("Failed to find dynmap or it is disabled.");
             return;
+        }
+        else {
+            updateCore();
+
         }
     }
 
@@ -71,14 +77,23 @@ public class BetterDynmapEngine {
 
         return true;
     }
-
+    public TempMarkerSet createLayer() {
+        TempMarkerSet ret = new TempMarkerSet();
+        ret.label = Conf.dynmapLayerName;
+        ret.minimumZoom = Conf.dynmapLayerMinimumZoom;
+        ret.priority = Conf.dynmapLayerPriority;
+        ret.hideByDefault = !Conf.dynmapLayerVisible;
+        return ret;
+    }
+    public Set allFactions() {
+        Set<Faction> allFactions = factionManager.INSTANCE.getFactions();
+        return allFactions;
+    }
     public boolean updateHomes() {
         fxapi.logColored("Updating Faction Homes.");
-        Set<Faction> factions = factionManager.getFactions();
-        fxapi.logColored("Retrieved factions: "+factions);
+
+        fxapi.logColored("Retrieving factions: "+allFactions());
         markerApi.createMarkerSet("Homes", "Faction Homes", null,true );
-
-
         return true;
     }
 

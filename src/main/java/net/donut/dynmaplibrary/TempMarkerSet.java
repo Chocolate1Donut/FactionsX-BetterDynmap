@@ -1,4 +1,4 @@
-package net.donut.fxbetterdynmap;
+package net.donut.dynmaplibrary;
 
 import org.dynmap.markers.MarkerAPI;
 import org.dynmap.markers.MarkerSet;
