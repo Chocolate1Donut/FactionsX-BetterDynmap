@@ -49,7 +49,7 @@ public class DynmapTestEngine {
         }
             markerSet = dynmapAPI.getMarkerAPI().createMarkerSet
                     ("factionsx", Config.dynmapLayerName, markerAPI.getMarkerIcons(), false);
-            createAreaMarker();
+            refreshClaims();
             return true;
     }
 
@@ -65,23 +65,29 @@ public class DynmapTestEngine {
                 "<span style=\"font-style:italic;font-size:110%\">Britannic Empire // Capitals: London, Annwn, Warszawa // Grand Alliance Founder // Government: Monarchy // Immigration: Open // Tourists Welcome // BRITANNIA RULES THE WAVES</span>");
     }
 
-    public void refreshAll() {
+    public void refreshClaims() {
         GridManager gridManager = GridManager.INSTANCE;
         Set<Faction> allFactions = FactionManager.INSTANCE.getFactions();
+        // For all factions, handle a faction.
         for(Faction faction : allFactions) {
             handleFaction(faction);
         }
     }
+
+    public void refreshHomes() {
+
+    }
+
     public void handleFaction(Faction faction) {
-        logColored("Iterating through faction:" +faction);
+        logColored("Drawing faction: " +faction);
         GridManager gridManager = GridManager.INSTANCE;
-        Set<FLocation> gridTest = gridManager.getAllClaims(faction);
-        while (gridTest != null) {
-            break;
+        Set<FLocation> allChunks = gridManager.getAllClaims(faction);
+        for (FLocation chunk : allChunks) {
+            logColored("Doing something with faction chunk at "+chunk);
         }
-        logColored(gridTest.toString());
     }
 
     public void shutdown() {
+
     }
 }
