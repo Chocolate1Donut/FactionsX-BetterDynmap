@@ -4,6 +4,7 @@ import net.prosavage.factionsx.core.FPlayer;
 import net.prosavage.factionsx.core.Faction;
 import net.prosavage.factionsx.manager.GridManager;
 import net.prosavage.factionsx.manager.PlayerManager;
+import net.prosavage.factionsx.manager.FactionManager;
 import net.prosavage.factionsx.persist.data.FLocation;
 import net.prosavage.factionsx.addonframework.Addon;
 import net.prosavage.factionsx.persist.data.Grid;
@@ -62,16 +63,19 @@ public class DynmapTestEngine {
         areaMarker.setLabel("Faction");
         areaMarker.setDescription("<span style=\"font-weight:bold;font-size:150%\">TestEmpire</span>" +
                 "<span style=\"font-style:italic;font-size:110%\">Britannic Empire // Capitals: London, Annwn, Warszawa // Grand Alliance Founder // Government: Monarchy // Immigration: Open // Tourists Welcome // BRITANNIA RULES THE WAVES</span>");
-        handleFaction();
     }
 
-    public void handleFaction() {
+    public void refreshAll() {
         GridManager gridManager = GridManager.INSTANCE;
-        FPlayer fPlayer = PlayerManager.INSTANCE.getFPlayer("ChocolateDonut_");
-        logColored("grabbed fplayer "+fPlayer);
-        Faction factiontest = fPlayer.getFaction();
-        logColored("grabbed player faction" +factiontest);
-        Set<FLocation> gridTest = gridManager.getAllClaims(factiontest);
+        Set<Faction> allFactions = FactionManager.INSTANCE.getFactions();
+        for(Faction faction : allFactions) {
+            handleFaction(faction);
+        }
+    }
+    public void handleFaction(Faction faction) {
+        logColored("Iterating through faction:" +faction);
+        GridManager gridManager = GridManager.INSTANCE;
+        Set<FLocation> gridTest = gridManager.getAllClaims(faction);
         while (gridTest != null) {
             break;
         }
