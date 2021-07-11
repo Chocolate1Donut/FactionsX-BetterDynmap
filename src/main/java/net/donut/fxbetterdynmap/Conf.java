@@ -87,7 +87,7 @@ public class Conf {
 
     public static void save(Addon addon) {
         addon.getConfigSerializer().save(instance,
-                new File(FXBetterDynmap.getInstance().getAddonDataFolder(), "config.json")
+                new File(FXBetterDynmap.getInstance().getAddonDataFolder(), "oldconfig.json")
         );
     }
 
@@ -95,7 +95,7 @@ public class Conf {
         FactionsX.baseCommand.getHelpInfo();
         addon.getConfigSerializer().load(instance,
                 Conf.class,
-                new File(FXBetterDynmap.getInstance().getAddonDataFolder(), "config.json")
+                new File(FXBetterDynmap.getInstance().getAddonDataFolder(), "oldconfig.json")
         );
     }
 }

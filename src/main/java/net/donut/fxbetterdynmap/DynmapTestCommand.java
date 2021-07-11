@@ -32,7 +32,7 @@ public class DynmapTestCommand extends FCommand {
      * This is used by the command engine to tell a player what a command does in the help menu
      */
     public String getHelpInfo() {
-        return Conf.dynmapColorHelpInfo;
+        return Config.dynmapColorHelpInfo;
     }
 
 }

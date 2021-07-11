@@ -32,7 +32,7 @@ public class FXBetterDynmap extends Addon {
         instance = this;
         FactionsX.baseCommand.addSubCommand(dynmapColor);
         FactionsX.baseCommand.addSubCommand(dynmapTestCommand);
-        Conf.load(this);
+        Config.load(this);
     }
 
     @Override
@@ -42,8 +42,8 @@ public class FXBetterDynmap extends Addon {
         FactionsX.baseCommand.removeSubCommand(dynmapTestCommand);
         // this is actually a really cool api
         // Load first to read changes from file, then save.
-        Conf.load(this);
-        Conf.save(this);
+        Config.load(this);
+        Config.save(this);
     }
 
     //How do i attach this to a GameObject
