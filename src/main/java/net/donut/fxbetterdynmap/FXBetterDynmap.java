@@ -24,17 +24,15 @@ public class FXBetterDynmap extends Addon {
     
     //Dynmap color object initialized as a new Dynmap color object
     private static DynmapColor dynmapColor = new DynmapColor();
-    private static DynmapTestCommand dynmapTestCommand = new DynmapTestCommand();
 
-    DynmapTestEngine dynmapTestEngine = DynmapTestEngine.getInstance();
+    FXBetterDynmapEngine fxBetterDynmapEngine = FXBetterDynmapEngine.getInstance();
 
     @Override
     protected void onEnable() {
         logColored("Initializing BetterDynmap for FactionsX");
         instance = this;
-        dynmapTestEngine.init();
+        fxBetterDynmapEngine.init();
         FactionsX.baseCommand.addSubCommand(dynmapColor);
-        FactionsX.baseCommand.addSubCommand(dynmapTestCommand);
         Config.load(this);
     }
 
@@ -42,13 +40,13 @@ public class FXBetterDynmap extends Addon {
     protected void onDisable() {
         logColored("Disabling BetterDynmap for FactionsX");
         FactionsX.baseCommand.removeSubCommand(dynmapColor);
-        FactionsX.baseCommand.removeSubCommand(dynmapTestCommand);
-        dynmapTestEngine.shutdown();
+        fxBetterDynmapEngine.shutdown();
 
         // Load first to read changes from file, then save.
         Config.load(this);
         Config.save(this);
     }
+
 
     //How do i attach this to a GameObject
     // this isnt working

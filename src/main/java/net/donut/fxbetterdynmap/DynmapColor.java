@@ -1,10 +1,9 @@
 package net.donut.fxbetterdynmap;
 
+
 import net.prosavage.factionsx.command.engine.CommandInfo;
 import net.prosavage.factionsx.command.engine.CommandRequirementsBuilder;
 import net.prosavage.factionsx.command.engine.FCommand;
-import net.prosavage.factionsx.core.BankAction;
-import net.prosavage.factionsx.core.Faction;
 
 public class DynmapColor extends FCommand {
     public DynmapColor() {
@@ -23,7 +22,7 @@ public class DynmapColor extends FCommand {
 
     public boolean execute(CommandInfo info) {
         info.message("executing dynmap color command, since you met the requirements.");
-        EngineBetterDynmap dynEngine = EngineBetterDynmap.getInstance();
+        FXBetterDynmapEngine dynEngine = FXBetterDynmapEngine.getInstance();
         dynEngine.init();
         return true;
     }
@@ -32,6 +31,6 @@ public class DynmapColor extends FCommand {
      * This is used by the command engine to tell a player what a command does in the help menu
      */
     public String getHelpInfo() {
-        return Conf.dynmapColorHelpInfo;
+        return Config.dynmapColorHelpInfo;
     }
 }

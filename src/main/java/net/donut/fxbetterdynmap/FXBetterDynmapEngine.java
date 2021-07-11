@@ -1,36 +1,27 @@
 package net.donut.fxbetterdynmap;
 
-import net.prosavage.factionsx.core.FPlayer;
 import net.prosavage.factionsx.core.Faction;
 import net.prosavage.factionsx.manager.GridManager;
-import net.prosavage.factionsx.manager.PlayerManager;
 import net.prosavage.factionsx.manager.FactionManager;
 import net.prosavage.factionsx.persist.data.FLocation;
 import net.prosavage.factionsx.addonframework.Addon;
-import net.prosavage.factionsx.persist.data.Grid;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 
 import org.dynmap.DynmapAPI;
 import org.dynmap.markers.*;
-import org.dynmap.utils.TileFlags;
 
-import java.awt.*;
-import java.util.List;
 import java.util.*;
-import java.util.Map.Entry;
 
 import static net.prosavage.factionsx.util.UtilKt.logColored;
 
-import net.prosavage.factionsx.addonframework.Addon;
+public class FXBetterDynmapEngine {
 
-public class DynmapTestEngine {
-
-    private static DynmapTestEngine i = new DynmapTestEngine();
-    public static DynmapTestEngine getInstance() {
+    private static FXBetterDynmapEngine i = new FXBetterDynmapEngine();
+    public static FXBetterDynmapEngine getInstance() {
         return i;
     }
-    private DynmapTestEngine() {
+    private FXBetterDynmapEngine() {
     }
 
     public DynmapAPI dynmapAPI;
@@ -47,6 +38,7 @@ public class DynmapTestEngine {
             logColored("Failed to find dynmap or it is disabled.");
             return false;
         }
+
             markerSet = dynmapAPI.getMarkerAPI().createMarkerSet
                     ("factionsx", Config.dynmapLayerName, markerAPI.getMarkerIcons(), false);
             refreshClaims();
@@ -79,7 +71,7 @@ public class DynmapTestEngine {
     }
 
     public void handleFaction(Faction faction) {
-        logColored("Drawing faction: " +faction);
+        logColored("Handling faction: " +faction);
         GridManager gridManager = GridManager.INSTANCE;
         Set<FLocation> allChunks = gridManager.getAllClaims(faction);
         for (FLocation chunk : allChunks) {
