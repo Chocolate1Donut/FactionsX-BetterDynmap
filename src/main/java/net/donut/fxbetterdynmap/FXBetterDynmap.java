@@ -4,13 +4,14 @@ import net.prosavage.factionsx.FactionsX;
 import net.prosavage.factionsx.addonframework.Addon;
 import net.prosavage.factionsx.core.FPlayer;
 import net.prosavage.factionsx.manager.PlayerManager;
+import net.prosavage.factionsx.persist.data.Factions;
+import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.List;
 
 public class FXBetterDynmap extends Addon {
 
     private static FXBetterDynmap instance;
-    public List<FPlayer> onlineFPlayers = PlayerManager.INSTANCE.getOnlineFPlayers();
     public static FXBetterDynmap getInstance() {
         return instance;
         // what???
@@ -26,12 +27,14 @@ public class FXBetterDynmap extends Addon {
     private static DynmapColor dynmapColor = new DynmapColor();
 
     FXBetterDynmapEngine fxBetterDynmapEngine = FXBetterDynmapEngine.getInstance();
+    FXBDEventListener fxbdEventListener = FXBDEventListener.getInstance();
 
     @Override
     protected void onEnable() {
         logColored("Initializing BetterDynmap for FactionsX");
         instance = this;
         fxBetterDynmapEngine.init();
+        fxbdEventListener.registerEvents(FactionsX.instance);
         FactionsX.baseCommand.addSubCommand(dynmapColor);
         Config.load(this);
     }

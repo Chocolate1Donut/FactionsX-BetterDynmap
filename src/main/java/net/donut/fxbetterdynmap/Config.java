@@ -1,12 +1,9 @@
 package net.donut.fxbetterdynmap;
 
-import com.google.common.collect.ImmutableMap;
-import net.donut.dynmaplibrary.DynmapStyle;
 import net.prosavage.factionsx.FactionsX;
 import net.prosavage.factionsx.addonframework.Addon;
 
 import java.io.File;
-import java.util.*;
 
 public class Config {
 
