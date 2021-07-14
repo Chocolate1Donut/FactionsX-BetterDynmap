@@ -86,8 +86,9 @@ public class FXBetterDynmapEngine {
         GridManager gridManager = GridManager.INSTANCE;
         FactionManager factionManager = FactionManager.INSTANCE;
         Set<FLocation> allChunks = gridManager.getAllClaims(faction);
-        double[] finalXs = {10, 0, 10, 0};
-        double[] finalYs = {0, 10, 0, 10};
+
+        ArrayList<Double> finalXs = null;
+        ArrayList<Double> finalZs = null;
 
         for (FLocation chunk : allChunks) {
             logColored("Handling Chunk: " + chunk);
@@ -97,9 +98,9 @@ public class FXBetterDynmapEngine {
             Location zero = new Location(chunk.getChunk().getWorld(), 0, 0, 0);
 
             Location topLeftLocation = new Location(chunk.getChunk().getWorld(), (chunkX * 16), 0, (chunkZ * 16));
-            Location topRightLocation = new Location(chunk.getChunk().getWorld(), (chunkX * 16 - 16), 0, (chunkZ * 16));
-            Location bottomLeftLocation = new Location(chunk.getChunk().getWorld(), (chunkX * 16), 0, (chunkZ * 16 - 16));
-            Location bottomRightLocation = new Location(chunk.getChunk().getWorld(), (chunkX * 16 - 16), 0, (chunkZ * 16 - 16));
+            Location topRightLocation = new Location(chunk.getChunk().getWorld(), (chunkX * 16 + 15), 0, (chunkZ * 16));
+            Location bottomLeftLocation = new Location(chunk.getChunk().getWorld(), (chunkX * 16), 0, (chunkZ * 16 + 15));
+            Location bottomRightLocation = new Location(chunk.getChunk().getWorld(), (chunkX * 16 + 15), 0, (chunkZ * 16 + 15));
 
             boolean isHorizontalAClaim = false;
             boolean isVerticalAClaim = false;
@@ -111,11 +112,12 @@ public class FXBetterDynmapEngine {
             // Iterate through every corner of a chunk.
             for (int i = 1; i <= 4; i++) {
 
-                logColored("Handling corner "+i+" of chunk.");
+                logColored("Handling corner " + i + " of chunk.");
 
                 // Create cornerLocation and testLocation and set it to 0, 0, 0 object.
                 Location cornerLocation = zero;
                 Location testLocation = zero;
+                Chunk testLocationChunk = zero.getChunk();
 
                 // Create variables for determining if the corner is a corner.
                 isDiagonalAClaim = false;
@@ -145,148 +147,189 @@ public class FXBetterDynmapEngine {
                 if (i == 1 || i == 3) {
                     testLocation.setX((cornerLocation.clone().getX() - 1));
                     testLocation.setZ((cornerLocation.clone().getZ()));
-                    if (testLocation.getChunk() == myChunk) {
-                        logColored("Ignoring. This is the same chunk");
-                    }
-                    else {
-                        logColored("Setting horizontal to true");
+                    testLocationChunk = testLocation.getChunk();
+                    if (gridManager.getFactionAt(testLocationChunk) == faction) {
                         isHorizontalAClaim = true;
+                    } else {
+                        logColored("Adjacent claim was not part of my faction.");
                     }
                 }
 
                 if (i == 1) {
                     testLocation.setX((cornerLocation.clone().getX() - 1));
                     testLocation.setZ((cornerLocation.clone().getZ() - 1));
-                    if (testLocation.getChunk() == myChunk) {
-                        logColored("Ignoring. This is the same chunk");
-                    }
-                    else {
-                        logColored("Setting diagonal to true");
+                    testLocationChunk = testLocation.getChunk();
+                    if (gridManager.getFactionAt(testLocationChunk) == faction) {
                         isDiagonalAClaim = true;
+                    } else {
+                        logColored("Adjacent claim was not part of my faction.");
                     }
                 }
 
                 if (i == 1 || i == 2) {
                     testLocation.setX((cornerLocation.clone().getX()));
                     testLocation.setZ((cornerLocation.clone().getZ() - 1));
-                    if (testLocation.getChunk() == myChunk) {
-                        logColored("Ignoring. This is the same chunk");
-                    }
-                    else {
-                        logColored("Setting vertical to true");
+                    testLocationChunk = testLocation.getChunk();
+                    if (gridManager.getFactionAt(testLocationChunk) == faction) {
                         isVerticalAClaim = true;
+                    } else {
+                        logColored("Adjacent claim was not part of my faction.");
                     }
                 }
 
                 if (i == 2) {
                     testLocation.setX((cornerLocation.clone().getX() + 1));
                     testLocation.setZ((cornerLocation.clone().getZ() - 1));
-                    if (testLocation.getChunk() == myChunk) {
-                        logColored("Ignoring. This is the same chunk");
-                    }
-                    else {
-                        logColored("Setting diagonal to true");
+                    testLocationChunk = testLocation.getChunk();
+                    if (gridManager.getFactionAt(testLocationChunk) == faction) {
                         isDiagonalAClaim = true;
+                    } else {
+                        logColored("Adjacent claim was not part of my faction.");
                     }
                 }
 
                 if (i == 2 || i == 4) {
                     testLocation.setX((cornerLocation.clone().getX() + 1));
                     testLocation.setZ((cornerLocation.clone().getZ()));
-                    if (testLocation.getChunk() == myChunk) {
-                        logColored("Ignoring. This is the same chunk");
-                    }
-                    else {
-                        logColored("Setting horizontal to true");
+                    testLocationChunk = testLocation.getChunk();
+                    if (gridManager.getFactionAt(testLocationChunk) == faction) {
                         isHorizontalAClaim = true;
+                    } else {
+                        logColored("Adjacent claim was not part of my faction.");
                     }
                 }
 
                 if (i == 4) {
                     testLocation.setX((cornerLocation.clone().getX() + 1));
                     testLocation.setZ((cornerLocation.clone().getZ() + 1));
-                    if (testLocation.getChunk() == myChunk) {
-                        logColored("Ignoring. This is the same chunk");
-                    }
-                    else {
-                        logColored("Setting diagonal to true");
+                    testLocationChunk = testLocation.getChunk();
+                    if (gridManager.getFactionAt(testLocationChunk) == faction) {
                         isDiagonalAClaim = true;
+                    } else {
+                        logColored("Adjacent claim was not part of my faction.");
                     }
                 }
 
                 if (i == 3 || i == 4) {
                     testLocation.setX((cornerLocation.clone().getX()));
                     testLocation.setZ((cornerLocation.clone().getZ() + 1));
-                    if (testLocation.getChunk() == myChunk) {
-                        logColored("Ignoring. This is the same chunk");
-                    }
-                    else {
-                        logColored("Setting vertical to true");
+                    testLocationChunk = testLocation.getChunk();
+                    if (gridManager.getFactionAt(testLocationChunk) == faction) {
                         isVerticalAClaim = true;
+                    } else {
+                        logColored("Adjacent claim was not part of my faction.");
                     }
                 }
 
                 if (i == 3) {
                     testLocation.setX((cornerLocation.clone().getX() - 1));
                     testLocation.setZ((cornerLocation.clone().getZ() + 1));
-                    if (testLocation.getChunk() == myChunk) {
-                        logColored("Ignoring. This is the same chunk");
-                    }
-                    else {
-                        logColored("Setting diagonal to true");
+                    testLocationChunk = testLocation.getChunk();
+                    if (gridManager.getFactionAt(testLocationChunk) == faction) {
                         isDiagonalAClaim = true;
+                    } else {
+                        logColored("Adjacent claim was not part of my faction.");
                     }
                 }
 
                 if (isDiagonalAClaim && isVerticalAClaim && isHorizontalAClaim) {
-                    // false
+                    // Do nothing because its not a corner.
                 } else if (!isDiagonalAClaim && isVerticalAClaim && isHorizontalAClaim) {
-                    // true
+                    if ((finalXs == null) || (finalZs == null)) {
+                        logColored("The final x or z array is null, so lets first set their values to cornerLocation.");
+                        finalXs = new ArrayList<Double>(List.of(cornerLocation.getX()));
+                        finalXs = new ArrayList<Double>(List.of(cornerLocation.getZ()));
+                    } else {
+                        logColored("The final x or z array already has stuff in it, so add onto it.");
+                        logColored("Before: " + finalXs + " " + finalZs);
+                        finalXs.add(cornerLocation.getX());
+                        finalZs.add(cornerLocation.getZ());
+                        logColored("After: " + finalXs + " " + finalZs);
+                    }
                 } else if (!isDiagonalAClaim && isVerticalAClaim && !isHorizontalAClaim) {
-                    // false
+                    // Do nothing because its not a corner.
                 } else if (!isDiagonalAClaim && !isVerticalAClaim && isHorizontalAClaim) {
-                    // false
+                    // Do nothing because its not a corner.
                 } else if (!isDiagonalAClaim && !isVerticalAClaim && !isHorizontalAClaim) {
-                    // true
+                    if ((finalXs == null) || (finalZs == null)) {
+                        logColored("The final x or z array is null, so lets first set their values to cornerLocation.");
+                        finalXs = new ArrayList<Double>(List.of(cornerLocation.getX()));
+                        finalZs = new ArrayList<Double>(List.of(cornerLocation.getZ()));
+                    } else {
+                        logColored("The final x or z array already has stuff in it, so add onto it.");
+                        logColored("Before: " + finalXs + " " + finalZs);
+                        finalXs.add(cornerLocation.getX());
+                        finalZs.add(cornerLocation.getZ());
+                        logColored("After: " + finalXs + " " + finalZs);
+                    }
                 }
 
-                logColored(isDiagonalAClaim+" "+isVerticalAClaim+" "+isHorizontalAClaim);
+                logColored(isDiagonalAClaim + " " + isVerticalAClaim + " " + isHorizontalAClaim);
 
             }
         }
 
-        // Create an area marker with the faction's ID for area marker ID and faction tag for label
-        AreaMarker areaMarker = markerSet.findAreaMarker(String.valueOf(faction.getId()));
-        if (areaMarker == null) {
-             areaMarker = markerSet.createAreaMarker(String.valueOf(faction.getId()), faction.getTag().replaceAll("&[a-zA-Z1-9]", ""),
-                    true, Bukkit.getWorld("world").getName(), new double[1000], new double[1000], false);
-             if (areaMarker == null) {
-                 logColored("Error creating area marker for faction "+ faction.getTag().replaceAll("&[a-zA-Z1-9]", ""));
-                 return;
-             }
-        }
-        areaMarker.setCornerLocations(finalXs, finalYs);
-        areaMarker.setBoostFlag(true);
-        areaMarker.setDescription
-                ("<span style=\"font-weight:bold;font-size:150%\">" + faction.getTag().replaceAll("&[a-zA-Z1-9]", "") + "</span>" +
-                        "<span style=\"font-style:italic;font-size:110%\"> " + faction.getDescription().replaceAll("&[a-zA-Z1-9]", "") + "</span>" +
-                        "<span style=\"font-weight:bold\">Leader:</span> " +
-                        "<span style=\"font-weight:bold\">Officers:</span> 0 " +
-                        "<span style=\"font-weight:bold\">Members:</span> 0 " +
-                        "<span style=\"font-weight:bold\">Recruits:</span> 0 " +
-                        "<span style=\"font-weight:bold\">TOTAL:</span> 1 " +
+        if ((finalXs == null) && (finalZs == null)) {
+            logColored(faction + " doesn't have any claims to display.");
+        } else {
+            // Create an area marker with the faction's ID for area marker ID and faction tag for label
+            AreaMarker areaMarker = markerSet.findAreaMarker(String.valueOf(faction.getId()));
+            if (areaMarker == null) {
+                logColored("Creating area marker for " + faction + "with x coords of " + finalXs+  " and z coords of " +finalZs);
+                areaMarker = markerSet.createAreaMarker(String.valueOf(faction.getId()), faction.getTag().replaceAll("&[a-zA-Z1-9]", ""),
+                        true, Bukkit.getWorld("world").getName(), new double[1000], new double[1000], false);
+                if (areaMarker == null) {
+                    logColored("Error creating area marker for faction " + faction.getTag().replaceAll("&[a-zA-Z1-9]", ""));
+                    return;
+                }
+            }
 
-                        "<span style=\"font-weight:bold\">Age:</span> " + faction.getFormattedCreationDate() +
-                        "<span style=\"font-weight:bold\"> Bank:</span> " + faction.getBank().getAmount() +
-                        "<span style=\"font-weight:bold\"><br>Flags: </span> " +
-                        "<span style=\"color:#800000\">open</span> " +
-                        "| <span style=\"color:#008000\">monsters</span> " +
-                        "| <span style=\"color:#008000\">animals</span> " +
-                        "| <span style=\"color:#008000\">pvp</span>"
-                );
+            Collections.reverse(finalXs);
+            Collections.reverse(finalZs);
+            //double[] finalXArray = finalXs.stream().mapToDouble(Double::doubleValue).toArray(); //via method reference
+            double[] finalXArray = finalXs.stream().mapToDouble(d -> d).toArray(); //identity function, Java unboxes automatically to get the double value
+            //double[] finalZArray = finalZs.stream().mapToDouble(Double::doubleValue).toArray(); //via method reference
+            double[] finalZArray = finalZs.stream().mapToDouble(d -> d).toArray(); //identity function, Java unboxes automatically to get the double value
+            areaMarker.setCornerLocations(finalXArray, finalZArray);
+            areaMarker.setBoostFlag(true);
+            areaMarker.setDescription
+                    ("<span style=\"font-weight:bold;font-size:150%\">" + faction.getTag().replaceAll("&[a-zA-Z1-9]", "") + "</span>" +
+                            "<span style=\"font-style:italic;font-size:110%\"> " + faction.getDescription().replaceAll("&[a-zA-Z1-9]", "") + "</span>" +
+                            "<span style=\"font-weight:bold\">Leader:</span> " +
+                            "<span style=\"font-weight:bold\">Officers:</span> 0 " +
+                            "<span style=\"font-weight:bold\">Members:</span> 0 " +
+                            "<span style=\"font-weight:bold\">Recruits:</span> 0 " +
+                            "<span style=\"font-weight:bold\">TOTAL:</span> 1 " +
+
+                            "<span style=\"font-weight:bold\">Age:</span> " + faction.getFormattedCreationDate() +
+                            "<span style=\"font-weight:bold\"> Bank:</span> " + faction.getBank().getAmount() +
+                            "<span style=\"font-weight:bold\"><br>Flags: </span> " +
+                            "<span style=\"color:#800000\">open</span> " +
+                            "| <span style=\"color:#008000\">monsters</span> " +
+                            "| <span style=\"color:#008000\">animals</span> " +
+                            "| <span style=\"color:#008000\">pvp</span>"
+                    );
+        }
     }
 
+    // Function to add x in arr
+    public static double[] addToArray(int n, double[] arr, double x) {
+        int i;
 
+        // create a new array of size n+1
+        double[] newarr = new double[n + 1];
+
+        // insert the elements from
+        // the old array into the new array
+        // insert all elements till n
+        // then insert x at n+1
+        for (i = 0; i < n; i++)
+            newarr[i] = arr[i];
+
+        newarr[n] = x;
+
+        return newarr;
+    }
 
     public String getMemberInfo(Faction faction) {
         if (faction.isSystemFaction()) {
