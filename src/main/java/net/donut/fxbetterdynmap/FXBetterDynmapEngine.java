@@ -97,10 +97,10 @@ public class FXBetterDynmapEngine {
 
             Location zero = new Location(chunk.getChunk().getWorld(), 0, 0, 0);
 
-            Location topLeftLocation = new Location(chunk.getChunk().getWorld(), (chunkX * 16), 0, (chunkZ * 16));
-            Location topRightLocation = new Location(chunk.getChunk().getWorld(), (chunkX * 16 + 15), 0, (chunkZ * 16));
-            Location bottomLeftLocation = new Location(chunk.getChunk().getWorld(), (chunkX * 16), 0, (chunkZ * 16 + 15));
-            Location bottomRightLocation = new Location(chunk.getChunk().getWorld(), (chunkX * 16 + 15), 0, (chunkZ * 16 + 15));
+            Location topLeftLocation = new Location(chunk.getChunk().getWorld(), (chunkX * 16 + 0.999), 0, (chunkZ * 16 + 0.999));
+            Location topRightLocation = new Location(chunk.getChunk().getWorld(), (chunkX * 16 + 15 + 0.999), 0, (chunkZ * 16 + 0.999));
+            Location bottomLeftLocation = new Location(chunk.getChunk().getWorld(), (chunkX * 16 + 0.999), 0, (chunkZ * 16 + 15 + 0.999));
+            Location bottomRightLocation = new Location(chunk.getChunk().getWorld(), (chunkX * 16 + 15 + 0.999), 0, (chunkZ * 16 + 15 + 0.999));
 
             boolean isHorizontalAClaim = false;
             boolean isVerticalAClaim = false;
@@ -134,17 +134,17 @@ public class FXBetterDynmapEngine {
                         cornerLocation = topRightLocation.clone();
                         break;
                     case 3:
-                        cornerLocation = bottomLeftLocation.clone();
+                        cornerLocation = bottomRightLocation.clone();
                         break;
                     case 4:
-                        cornerLocation = bottomRightLocation.clone();
+                        cornerLocation = bottomLeftLocation.clone();
                         break;
                 }
 
                 logColored("Checking surrounding chunks of corner: " +
                         cornerLocation + "in chunk: " + myChunk + " of corner type: " + i);
 
-                if (i == 1 || i == 3) {
+                if (i == 1 || i == 4) {
                     testLocation.setX((cornerLocation.clone().getX() - 1));
                     testLocation.setZ((cornerLocation.clone().getZ()));
                     testLocationChunk = testLocation.getChunk();
@@ -188,7 +188,7 @@ public class FXBetterDynmapEngine {
                     }
                 }
 
-                if (i == 2 || i == 4) {
+                if (i == 2 || i == 3) {
                     testLocation.setX((cornerLocation.clone().getX() + 1));
                     testLocation.setZ((cornerLocation.clone().getZ()));
                     testLocationChunk = testLocation.getChunk();
@@ -199,7 +199,7 @@ public class FXBetterDynmapEngine {
                     }
                 }
 
-                if (i == 4) {
+                if (i == 3) {
                     testLocation.setX((cornerLocation.clone().getX() + 1));
                     testLocation.setZ((cornerLocation.clone().getZ() + 1));
                     testLocationChunk = testLocation.getChunk();
@@ -210,7 +210,7 @@ public class FXBetterDynmapEngine {
                     }
                 }
 
-                if (i == 3 || i == 4) {
+                if (i == 4 || i == 3) {
                     testLocation.setX((cornerLocation.clone().getX()));
                     testLocation.setZ((cornerLocation.clone().getZ() + 1));
                     testLocationChunk = testLocation.getChunk();
@@ -221,7 +221,7 @@ public class FXBetterDynmapEngine {
                     }
                 }
 
-                if (i == 3) {
+                if (i == 4) {
                     testLocation.setX((cornerLocation.clone().getX() - 1));
                     testLocation.setZ((cornerLocation.clone().getZ() + 1));
                     testLocationChunk = testLocation.getChunk();
@@ -247,9 +247,29 @@ public class FXBetterDynmapEngine {
                         logColored("After: " + finalXs + " " + finalZs);
                     }
                 } else if (!isDiagonalAClaim && isVerticalAClaim && !isHorizontalAClaim) {
-                    // Do nothing because its not a corner.
+                    if ((finalXs == null) || (finalZs == null)) {
+                        logColored("The final x or z array is null, so lets first set their values to cornerLocation.");
+                        finalXs = new ArrayList<Double>(List.of(cornerLocation.getX()));
+                        finalZs = new ArrayList<Double>(List.of(cornerLocation.getZ()));
+                    } else {
+                        logColored("The final x or z array already has stuff in it, so add onto it.");
+                        logColored("Before: " + finalXs + " " + finalZs);
+                        finalXs.add(cornerLocation.getX());
+                        finalZs.add(cornerLocation.getZ());
+                        logColored("After: " + finalXs + " " + finalZs);
+                    }
                 } else if (!isDiagonalAClaim && !isVerticalAClaim && isHorizontalAClaim) {
-                    // Do nothing because its not a corner.
+                    if ((finalXs == null) || (finalZs == null)) {
+                        logColored("The final x or z array is null, so lets first set their values to cornerLocation.");
+                        finalXs = new ArrayList<Double>(List.of(cornerLocation.getX()));
+                        finalZs = new ArrayList<Double>(List.of(cornerLocation.getZ()));
+                    } else {
+                        logColored("The final x or z array already has stuff in it, so add onto it.");
+                        logColored("Before: " + finalXs + " " + finalZs);
+                        finalXs.add(cornerLocation.getX());
+                        finalZs.add(cornerLocation.getZ());
+                        logColored("After: " + finalXs + " " + finalZs);
+                    }
                 } else if (!isDiagonalAClaim && !isVerticalAClaim && !isHorizontalAClaim) {
                     if ((finalXs == null) || (finalZs == null)) {
                         logColored("The final x or z array is null, so lets first set their values to cornerLocation.");
@@ -284,8 +304,6 @@ public class FXBetterDynmapEngine {
                 }
             }
 
-            Collections.reverse(finalXs);
-            Collections.reverse(finalZs);
             //double[] finalXArray = finalXs.stream().mapToDouble(Double::doubleValue).toArray(); //via method reference
             double[] finalXArray = finalXs.stream().mapToDouble(d -> d).toArray(); //identity function, Java unboxes automatically to get the double value
             //double[] finalZArray = finalZs.stream().mapToDouble(Double::doubleValue).toArray(); //via method reference
