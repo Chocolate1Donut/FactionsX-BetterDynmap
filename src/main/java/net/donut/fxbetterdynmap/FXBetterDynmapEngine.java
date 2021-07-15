@@ -82,13 +82,21 @@ public class FXBetterDynmapEngine {
     }
 
     public void handleFaction(Faction faction) {
-        logColored("Handling faction: " + faction);
+        logColored("Drawing faction: " + faction.getTag().replaceAll("&[a-zA-Z1-9]", ""));
+
+        // Get GridManager and FactionManager so we can ask them stuff.
         GridManager gridManager = GridManager.INSTANCE;
         FactionManager factionManager = FactionManager.INSTANCE;
+
+        // Get all claims owned by the faction
         Set<FLocation> allChunks = gridManager.getAllClaims(faction);
 
+        // This is where we will store all our corners. We'll
+        // make this null for now.
         ArrayList<Double> finalXs = null;
         ArrayList<Double> finalZs = null;
+
+        Set<Location> corners = null;
 
         for (FLocation chunk : allChunks) {
             logColored("Handling Chunk: " + chunk);
@@ -97,10 +105,10 @@ public class FXBetterDynmapEngine {
 
             Location zero = new Location(chunk.getChunk().getWorld(), 0, 0, 0);
 
-            Location topLeftLocation = new Location(chunk.getChunk().getWorld(), (chunkX * 16 + 0.999), 0, (chunkZ * 16 + 0.999));
-            Location topRightLocation = new Location(chunk.getChunk().getWorld(), (chunkX * 16 + 15 + 0.999), 0, (chunkZ * 16 + 0.999));
-            Location bottomLeftLocation = new Location(chunk.getChunk().getWorld(), (chunkX * 16 + 0.999), 0, (chunkZ * 16 + 15 + 0.999));
-            Location bottomRightLocation = new Location(chunk.getChunk().getWorld(), (chunkX * 16 + 15 + 0.999), 0, (chunkZ * 16 + 15 + 0.999));
+            Location topLeftLocation = new Location(chunk.getChunk().getWorld(), (chunkX * 16), 0, (chunkZ * 16));
+            Location topRightLocation = new Location(chunk.getChunk().getWorld(), (chunkX * 16 + 15), 0, (chunkZ * 16));
+            Location bottomLeftLocation = new Location(chunk.getChunk().getWorld(), (chunkX * 16), 0, (chunkZ * 16 + 15));
+            Location bottomRightLocation = new Location(chunk.getChunk().getWorld(), (chunkX * 16 + 15), 0, (chunkZ * 16 + 15));
 
             boolean isHorizontalAClaim = false;
             boolean isVerticalAClaim = false;
@@ -235,59 +243,112 @@ public class FXBetterDynmapEngine {
                 if (isDiagonalAClaim && isVerticalAClaim && isHorizontalAClaim) {
                     // Do nothing because its not a corner.
                 } else if (!isDiagonalAClaim && isVerticalAClaim && isHorizontalAClaim) {
-                    if ((finalXs == null) || (finalZs == null)) {
-                        logColored("The final x or z array is null, so lets first set their values to cornerLocation.");
-                        finalXs = new ArrayList<Double>(List.of(cornerLocation.getX()));
-                        finalXs = new ArrayList<Double>(List.of(cornerLocation.getZ()));
-                    } else {
-                        logColored("The final x or z array already has stuff in it, so add onto it.");
-                        logColored("Before: " + finalXs + " " + finalZs);
-                        finalXs.add(cornerLocation.getX());
-                        finalZs.add(cornerLocation.getZ());
-                        logColored("After: " + finalXs + " " + finalZs);
+                    if (corners == null) {
+                        corners = new HashSet<Location>(Set.of(cornerLocation));
+                    }
+                    else {
+                        corners.add(cornerLocation);
                     }
                 } else if (!isDiagonalAClaim && isVerticalAClaim && !isHorizontalAClaim) {
-                    if ((finalXs == null) || (finalZs == null)) {
-                        logColored("The final x or z array is null, so lets first set their values to cornerLocation.");
-                        finalXs = new ArrayList<Double>(List.of(cornerLocation.getX()));
-                        finalZs = new ArrayList<Double>(List.of(cornerLocation.getZ()));
-                    } else {
-                        logColored("The final x or z array already has stuff in it, so add onto it.");
-                        logColored("Before: " + finalXs + " " + finalZs);
-                        finalXs.add(cornerLocation.getX());
-                        finalZs.add(cornerLocation.getZ());
-                        logColored("After: " + finalXs + " " + finalZs);
-                    }
+
                 } else if (!isDiagonalAClaim && !isVerticalAClaim && isHorizontalAClaim) {
-                    if ((finalXs == null) || (finalZs == null)) {
-                        logColored("The final x or z array is null, so lets first set their values to cornerLocation.");
-                        finalXs = new ArrayList<Double>(List.of(cornerLocation.getX()));
-                        finalZs = new ArrayList<Double>(List.of(cornerLocation.getZ()));
-                    } else {
-                        logColored("The final x or z array already has stuff in it, so add onto it.");
-                        logColored("Before: " + finalXs + " " + finalZs);
-                        finalXs.add(cornerLocation.getX());
-                        finalZs.add(cornerLocation.getZ());
-                        logColored("After: " + finalXs + " " + finalZs);
-                    }
+
                 } else if (!isDiagonalAClaim && !isVerticalAClaim && !isHorizontalAClaim) {
-                    if ((finalXs == null) || (finalZs == null)) {
-                        logColored("The final x or z array is null, so lets first set their values to cornerLocation.");
-                        finalXs = new ArrayList<Double>(List.of(cornerLocation.getX()));
-                        finalZs = new ArrayList<Double>(List.of(cornerLocation.getZ()));
-                    } else {
-                        logColored("The final x or z array already has stuff in it, so add onto it.");
-                        logColored("Before: " + finalXs + " " + finalZs);
-                        finalXs.add(cornerLocation.getX());
-                        finalZs.add(cornerLocation.getZ());
-                        logColored("After: " + finalXs + " " + finalZs);
-                    }
+                   if (corners == null) {
+                       logColored("List of corners is null, so lets set it to something first.");
+                       corners = new HashSet<Location>(Set.of(cornerLocation));
+                   }
+                   else {
+                       logColored("List of corners already has stuff in it, so lets add to it.");
+                       corners.add(cornerLocation);
+                   }
                 }
 
-                logColored(isDiagonalAClaim + " " + isVerticalAClaim + " " + isHorizontalAClaim);
+                logColored("D: " + isDiagonalAClaim + " V: " + isVerticalAClaim + " H: " + isHorizontalAClaim);
 
             }
         }
+
+        // Now that we have all the actual corners of our faction, we want to
+        // make sure they are in the right order, because if they are not it looks
+        // like a complete clusterfuck.
+
+        Set<Location> sortedCorners = null;
+        logColored("Here is our list of corners, unsorted: " +corners);
+        if (corners != null) {
+            for (Location corner : corners) {
+                Location testLocation = corner.clone();
+                testLocation.setX(corner.clone().getX());
+                testLocation.setZ(corner.clone().getZ() - 16);
+                logColored("Checking 16 blocks north at "+testLocation+" from "+corner);
+                if (corners.contains(testLocation)) {
+                    if ((finalXs == null) || (finalZs == null)) {
+                        logColored("The final x or z array is null, so lets first set their values to testLocation");
+                        finalXs = new ArrayList<Double>(List.of(testLocation.getX()));
+                        finalZs = new ArrayList<Double>(List.of(testLocation.getZ()));
+                    } else {
+                        logColored("The final x or z array already has stuff in it, so add onto it.");
+                        logColored("Before: " + finalXs + " " + finalZs);
+                        finalXs.add(testLocation.getX());
+                        finalZs.add(testLocation.getZ());
+                        logColored("After: " + finalXs + " " + finalZs);
+                    }
+                    break;
+                }
+                testLocation.setX(corner.clone().getX() + 16);
+                testLocation.setZ(corner.clone().getZ());
+                logColored("Checking 16 blocks east at "+testLocation+" from "+corner);
+                if (corners.contains(testLocation)) {
+                    if ((finalXs == null) || (finalZs == null)) {
+                        logColored("The final x or z array is null, so lets first set their values to testLocation");
+                        finalXs = new ArrayList<Double>(List.of(testLocation.getX()));
+                        finalZs = new ArrayList<Double>(List.of(testLocation.getZ()));
+                    } else {
+                        logColored("The final x or z array already has stuff in it, so add onto it.");
+                        logColored("Before: " + finalXs + " " + finalZs);
+                        finalXs.add(testLocation.getX());
+                        finalZs.add(testLocation.getZ());
+                        logColored("After: " + finalXs + " " + finalZs);
+                    }
+                    break;
+                }
+                testLocation.setX(corner.clone().getX());
+                testLocation.setZ(corner.clone().getZ() + 16);
+                logColored("Checking 16 blocks south at "+testLocation+" from "+corner);
+                if (corners.contains(testLocation)) {
+                    if ((finalXs == null) || (finalZs == null)) {
+                        logColored("The final x or z array is null, so lets first set their values to testLocation");
+                        finalXs = new ArrayList<Double>(List.of(testLocation.getX()));
+                        finalZs = new ArrayList<Double>(List.of(testLocation.getZ()));
+                    } else {
+                        logColored("The final x or z array already has stuff in it, so add onto it.");
+                        logColored("Before: " + finalXs + " " + finalZs);
+                        finalXs.add(testLocation.getX());
+                        finalZs.add(testLocation.getZ());
+                        logColored("After: " + finalXs + " " + finalZs);
+                    }
+                    break;
+                }
+                testLocation.setX(corner.clone().getX() - 16);
+                testLocation.setZ(corner.clone().getZ());
+                logColored("Checking 16 blocks west at "+testLocation+" from "+corner);
+                if (corners.contains(testLocation)) {
+                    if ((finalXs == null) || (finalZs == null)) {
+                        logColored("The final x or z array is null, so lets first set their values to testLocation");
+                        finalXs = new ArrayList<Double>(List.of(testLocation.getX()));
+                        finalZs = new ArrayList<Double>(List.of(testLocation.getZ()));
+                    } else {
+                        logColored("The final x or z array already has stuff in it, so add onto it.");
+                        logColored("Before: " + finalXs + " " + finalZs);
+                        finalXs.add(testLocation.getX());
+                        finalZs.add(testLocation.getZ());
+                        logColored("After: " + finalXs + " " + finalZs);
+                    }
+                    break;
+                }
+            }
+        }
+
 
         if ((finalXs == null) && (finalZs == null)) {
             logColored(faction + " doesn't have any claims to display.");
@@ -295,7 +356,7 @@ public class FXBetterDynmapEngine {
             // Create an area marker with the faction's ID for area marker ID and faction tag for label
             AreaMarker areaMarker = markerSet.findAreaMarker(String.valueOf(faction.getId()));
             if (areaMarker == null) {
-                logColored("Creating area marker for " + faction + "with x coords of " + finalXs+  " and z coords of " +finalZs);
+                logColored("Creating area marker for " + faction + "with x coords of " + finalXs + " and z coords of " + finalZs);
                 areaMarker = markerSet.createAreaMarker(String.valueOf(faction.getId()), faction.getTag().replaceAll("&[a-zA-Z1-9]", ""),
                         true, Bukkit.getWorld("world").getName(), new double[1000], new double[1000], false);
                 if (areaMarker == null) {
