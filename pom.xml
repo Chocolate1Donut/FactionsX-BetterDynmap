@@ -6,11 +6,11 @@
 
     <groupId>org.example</groupId>
     <artifactId>FactionsXBetterDynmap</artifactId>
-    <version>0.4</version>
+    <version>v0.5.0</version>
 
     <properties>
-        <maven.compiler.source>16</maven.compiler.source>
-        <maven.compiler.target>16</maven.compiler.target>
+        <maven.compiler.source>11</maven.compiler.source>
+        <maven.compiler.target>11</maven.compiler.target>
     </properties>
 
     <repositories>

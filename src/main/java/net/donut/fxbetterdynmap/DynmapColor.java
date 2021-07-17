@@ -22,7 +22,7 @@ public class DynmapColor extends FCommand {
 
     public boolean execute(CommandInfo info) {
         info.message("executing dynmap color command, since you met the requirements.");
-        FXBetterDynmapEngine dynEngine = FXBetterDynmapEngine.getInstance();
+        FXBDEngine dynEngine = FXBDEngine.getInstance();
         dynEngine.init();
         return true;
     }

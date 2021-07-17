@@ -5,7 +5,7 @@ import net.prosavage.factionsx.manager.GridManager;
 import net.prosavage.factionsx.manager.FactionManager;
 import net.prosavage.factionsx.persist.data.FLocation;
 import net.prosavage.factionsx.addonframework.Addon;
-import net.prosavage.factionsx.util.Coordinate;
+import net.prosavage.factionsx.persist.data.wrappers.DataLocation;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Chunk;
@@ -14,24 +14,22 @@ import org.bukkit.plugin.Plugin;
 import org.dynmap.DynmapAPI;
 import org.dynmap.markers.*;
 
-import java.lang.reflect.Array;
 import java.util.*;
 
-import static net.prosavage.factionsx.util.UtilKt.getFPlayer;
 import static net.prosavage.factionsx.util.UtilKt.logColored;
 
 // Built for GeoLegacy.xyz by ChocolateDonut_
 // June 2021
 
-public class FXBetterDynmapEngine {
+public class FXBDEngine {
 
-    private final static FXBetterDynmapEngine i = new FXBetterDynmapEngine();
+    private final static FXBDEngine i = new FXBDEngine();
 
-    public static FXBetterDynmapEngine getInstance() {
+    public static FXBDEngine getInstance() {
         return i;
     }
 
-    private FXBetterDynmapEngine() {
+    private FXBDEngine() {
     }
 
     public DynmapAPI dynmapAPI;
@@ -50,7 +48,8 @@ public class FXBetterDynmapEngine {
         this.markerAPI = this.dynmapAPI.getMarkerAPI();
         markerSet = dynmapAPI.getMarkerAPI().createMarkerSet
                 ("factionsx", Config.dynmapLayerName, markerAPI.getMarkerIcons(), false);
-        refreshClaims();
+        //refreshClaims();
+        refreshHomes();
         logColored("FXBD Engine started successfully!");
         return true;
     }
@@ -73,12 +72,54 @@ public class FXBetterDynmapEngine {
         Set<Faction> allFactions = FactionManager.INSTANCE.getFactions();
         // For all factions, handle a faction.
         for (Faction faction : allFactions) {
-            handleFaction(faction);
+            DataLocation homeLocation = faction.getHome();
+
         }
     }
 
     public void refreshHomes() {
+        GridManager gridManager = GridManager.INSTANCE;
+        FactionManager factionManager = FactionManager.INSTANCE;
+        Set<Faction> allFactions = FactionManager.INSTANCE.getFactions();
+        // For all factions, handle a faction.
+        for (Faction faction : allFactions) {
+            DataLocation homeLocation = faction.getHome();
+            // Does homeLocation exist for this faction?
+            if (homeLocation != null) {
+                // Is markerSet null for some reason?
+                if (markerSet == null) {
+                    // Try and reinitialize. If it doesn't work, push an error.
+                    if (!init()) {
+                        logColored("Failed to initialize FactionsX-BetterDynmap.");
+                        break;
+                    }
+                    // If it does reinitialize, try refreshing homes again.
+                    else {
+                        refreshHomes();
+                    }
+                }
+                if (markerSet.findMarker(faction.getTag().replaceAll("&[a-zA-Z1-9]", "")) == null) {
+                    markerSet.createMarker(faction.getTag().replaceAll("&[a-zA-Z1-9]", ""), faction.getTag().replaceAll("&[a-zA-Z1-9]", ""),
+                            homeLocation.getWorldName(), homeLocation.getX(), homeLocation.getY(), homeLocation.getZ(), markerAPI.getMarkerIcon("greenflag"), false);
+                }
+                else {
+                    markerSet.findMarker((faction.getTag().replaceAll("&[a-zA-Z1-9]", ""))).setLocation(homeLocation.getWorldName(), homeLocation.getX(),
+                            homeLocation.getY(), homeLocation.getZ());
+                }
+            }
+            else {
+                continue;
+            }
+        }
+    }
 
+    public void removeHome(String markerid){
+        if (markerid == null) {
+            logColored("Tried to delete an f home marker but the faction name came back null. Oh well.");
+        }
+        else {
+            markerSet.findMarker(markerid).deleteMarker();
+        }
     }
 
     public void handleFaction(Faction faction) {

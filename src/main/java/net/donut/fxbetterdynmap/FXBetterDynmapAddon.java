@@ -2,17 +2,15 @@ package net.donut.fxbetterdynmap;
 
 import net.prosavage.factionsx.FactionsX;
 import net.prosavage.factionsx.addonframework.Addon;
-import net.prosavage.factionsx.core.FPlayer;
-import net.prosavage.factionsx.manager.PlayerManager;
-import net.prosavage.factionsx.persist.data.Factions;
-import org.bukkit.plugin.java.JavaPlugin;
 
-import java.util.List;
+import net.donut.fxbetterdynmap.FXBDRefreshDynmapTask;
+import org.bukkit.scheduler.BukkitTask;
 
-public class FXBetterDynmap extends Addon {
 
-    private static FXBetterDynmap instance;
-    public static FXBetterDynmap getInstance() {
+public class FXBetterDynmapAddon extends Addon {
+
+    private static FXBetterDynmapAddon instance;
+    public static FXBetterDynmapAddon getInstance() {
         return instance;
         // what???
         
@@ -26,16 +24,22 @@ public class FXBetterDynmap extends Addon {
     //Dynmap color object initialized as a new Dynmap color object
     private static DynmapColor dynmapColor = new DynmapColor();
 
-    FXBetterDynmapEngine fxBetterDynmapEngine = FXBetterDynmapEngine.getInstance();
+    FXBDEngine fxbdEngine = FXBDEngine.getInstance();
     FXBDEventListener fxbdEventListener = FXBDEventListener.getInstance();
+    FactionsX fx = FactionsX.instance;
 
     @Override
     protected void onEnable() {
         logColored("Initializing BetterDynmap for FactionsX");
         instance = this;
-        fxBetterDynmapEngine.init();
-        fxbdEventListener.registerEvents(FactionsX.instance);
-        FactionsX.baseCommand.addSubCommand(dynmapColor);
+        if (fxbdEngine.init()) {
+            fxbdEventListener.registerEvents(FactionsX.instance);
+            BukkitTask refreshDynmapTask = new FXBDRefreshDynmapTask(fx).runTaskTimer(fx, 0L, 2400L);
+            FactionsX.baseCommand.addSubCommand(dynmapColor);
+        }
+        else {
+            logColored("FactionsX-BetterDynmap failed to initialize!");
+        }
         Config.load(this);
     }
 
@@ -43,7 +47,7 @@ public class FXBetterDynmap extends Addon {
     protected void onDisable() {
         logColored("Disabling BetterDynmap for FactionsX");
         FactionsX.baseCommand.removeSubCommand(dynmapColor);
-        fxBetterDynmapEngine.shutdown();
+        fxbdEngine.shutdown();
 
         // Load first to read changes from file, then save.
         Config.load(this);
