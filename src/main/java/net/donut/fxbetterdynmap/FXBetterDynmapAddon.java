@@ -28,13 +28,15 @@ public class FXBetterDynmapAddon extends Addon {
     FXBDEventListener fxbdEventListener = FXBDEventListener.getInstance();
     FactionsX fx = FactionsX.instance;
 
+    BukkitTask refreshDynmapTask;
+
     @Override
     protected void onEnable() {
         logColored("Initializing BetterDynmap for FactionsX");
         instance = this;
         if (fxbdEngine.init()) {
             fxbdEventListener.registerEvents(FactionsX.instance);
-            BukkitTask refreshDynmapTask = new FXBDRefreshDynmapTask(fx).runTaskTimer(fx, 0L, 2400L);
+            refreshDynmapTask = new FXBDRefreshDynmapTask(fx).runTaskTimer(fx, 0L, 2400L);
             FactionsX.baseCommand.addSubCommand(dynmapColor);
         }
         else {
@@ -47,13 +49,13 @@ public class FXBetterDynmapAddon extends Addon {
     protected void onDisable() {
         logColored("Disabling BetterDynmap for FactionsX");
         FactionsX.baseCommand.removeSubCommand(dynmapColor);
+        refreshDynmapTask.cancel();
         fxbdEngine.shutdown();
 
         // Load first to read changes from file, then save.
         Config.load(this);
         Config.save(this);
     }
-
 
     //How do i attach this to a GameObject
     // this isnt working

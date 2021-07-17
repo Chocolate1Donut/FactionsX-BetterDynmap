@@ -10,25 +10,29 @@ public class Config {
     public static transient Config instance = new Config();
 
     // Region Style
-    public static final transient String styleLineColor = "#00FF00";
-    public static final transient double styleLineOpacity = 0.8D;
-    public static final transient int styleLineWeight = 3;
-    public static final transient String styleFillColor = "#00FF00";
-    public static final transient double styleFillOpacity = 0.35D;
-    public static final transient String homeIcon = "greenflag";
-    public static final transient String warpIcon = "greenflag";
-    public static final transient boolean boostResolution = false;
+    public String styleLineColor = "#00FF00";
+    public double styleLineOpacity = 0.8D;
+    public int styleLineWeight = 3;
+    public String styleFillColor = "#00FF00";
+    public double styleFillOpacity = 0.35D;
+    public boolean boostResolution = true;
 
     public static String dynmapColorPermissionNode = "factionsx.betterdynmap.color";
     public static String dynmapColorHelpInfo = "Changes your faction's color on the dynmap.";
     public static String dynmapColorPermissonDenied = "Permisson Denied.";
 
     // Should the dynmap intagration be used?
-    public static boolean dynmapUse = false;
+    public boolean dynmapUse = true;
+    // Should we show faction's homes on the map?
+    public static boolean showHomes = true;
+    public static String fHomeMarkerIcon = "greenflag";
+    // Should we show faction's warps on the map?
+    public static boolean showWarps = false;
+    public static String fWarpMarkerIcon = "blueflag";
     // Name of the Factions layer
     public static String dynmapLayerName = "FactionsXTest";
     // Should the layer be visible per default
-    public static boolean dynmapLayerVisible = true;
+    public boolean dynmapLayerVisible = true;
     // Ordering priority in layer menu (low goes before high - default is 0)
     public static int dynmapLayerPriority = 2;
     // (optional) set minimum zoom level before layer is visible (0 = default, always visible)

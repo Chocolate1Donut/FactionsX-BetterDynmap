@@ -37,6 +37,6 @@ public class FXBDEventListener implements Listener {
 
     @EventHandler(priority = EventPriority.LOW)
     public void FactionDisbandEvent(FactionPreDisbandEvent event) {
-        fxbdEngine.removeHome(event.getFaction().toString().replaceAll("&[a-zA-Z1-9]", ""));
+        //fxbdEngine.removeHome(event.getFaction().toString().replaceAll("&[a-zA-Z1-9]", ""));
     }
 }

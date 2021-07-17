@@ -17,5 +17,6 @@ public class FXBDRefreshDynmapTask extends BukkitRunnable {
     @Override
     public void run() {
         fxbdEngine.refreshHomes();
+        fxbdEngine.refreshWarps();
     }
 }

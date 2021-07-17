@@ -6,6 +6,9 @@ import net.prosavage.factionsx.manager.FactionManager;
 import net.prosavage.factionsx.persist.data.FLocation;
 import net.prosavage.factionsx.addonframework.Addon;
 import net.prosavage.factionsx.persist.data.wrappers.DataLocation;
+import net.prosavage.factionsx.persist.data.wrappers.Warp;
+import static net.prosavage.factionsx.util.UtilKt.logColored;
+
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Chunk;
@@ -15,8 +18,6 @@ import org.dynmap.DynmapAPI;
 import org.dynmap.markers.*;
 
 import java.util.*;
-
-import static net.prosavage.factionsx.util.UtilKt.logColored;
 
 // Built for GeoLegacy.xyz by ChocolateDonut_
 // June 2021
@@ -46,10 +47,17 @@ public class FXBDEngine {
             return false;
         }
         this.markerAPI = this.dynmapAPI.getMarkerAPI();
-        markerSet = dynmapAPI.getMarkerAPI().createMarkerSet
-                ("factionsx", Config.dynmapLayerName, markerAPI.getMarkerIcons(), false);
+        if (dynmapAPI.getMarkerAPI().getMarkerSet("factionsx") == null) {
+            markerSet = dynmapAPI.getMarkerAPI().createMarkerSet
+                    ("factionsx", Config.dynmapLayerName, markerAPI.getMarkerIcons(), false);
+            if (markerSet == null) {
+                return false;
+            }
+        }
         //refreshClaims();
         refreshHomes();
+        refreshWarps();
+        refreshClaims();
         logColored("FXBD Engine started successfully!");
         return true;
     }
@@ -77,48 +85,92 @@ public class FXBDEngine {
         }
     }
 
-    public void refreshHomes() {
-        GridManager gridManager = GridManager.INSTANCE;
-        FactionManager factionManager = FactionManager.INSTANCE;
-        Set<Faction> allFactions = FactionManager.INSTANCE.getFactions();
-        // For all factions, handle a faction.
-        for (Faction faction : allFactions) {
-            DataLocation homeLocation = faction.getHome();
-            // Does homeLocation exist for this faction?
-            if (homeLocation != null) {
-                // Is markerSet null for some reason?
-                if (markerSet == null) {
-                    // Try and reinitialize. If it doesn't work, push an error.
-                    if (!init()) {
-                        logColored("Failed to initialize FactionsX-BetterDynmap.");
-                        break;
-                    }
-                    // If it does reinitialize, try refreshing homes again.
-                    else {
-                        refreshHomes();
-                    }
+    public void refreshWarps() {
+        if (Config.showWarps) {
+            logColored("Refreshing Warps");
+            GridManager gridManager = GridManager.INSTANCE;
+            FactionManager factionManager = FactionManager.INSTANCE;
+            Set<Faction> allFactions = FactionManager.INSTANCE.getFactions();
+            if (markerSet == null) {
+                // Try and reinitialize. If it doesn't work, push an error.
+                if (!init()) {
+                    logColored("Failed to initialize FactionsX-BetterDynmap.");
+                    return;
                 }
-                if (markerSet.findMarker(faction.getTag().replaceAll("&[a-zA-Z1-9]", "")) == null) {
-                    markerSet.createMarker(faction.getTag().replaceAll("&[a-zA-Z1-9]", ""), faction.getTag().replaceAll("&[a-zA-Z1-9]", ""),
-                            homeLocation.getWorldName(), homeLocation.getX(), homeLocation.getY(), homeLocation.getZ(), markerAPI.getMarkerIcon("greenflag"), false);
-                }
+                // If it does reinitialize, try refreshing warps again.
                 else {
-                    markerSet.findMarker((faction.getTag().replaceAll("&[a-zA-Z1-9]", ""))).setLocation(homeLocation.getWorldName(), homeLocation.getX(),
-                            homeLocation.getY(), homeLocation.getZ());
+                    refreshWarps();
                 }
             }
-            else {
-                continue;
+            // For all factions, handle a faction.
+            for (Faction faction : allFactions) {
+                List<Warp> allWarps = faction.getAllWarps();
+                // Does this faction have warps to show?
+                if (allWarps != null) {
+                    // Is markerSet null for some reason?
+                    // Iterate through every warp.
+                    for (Warp warp : allWarps) {
+                        // Does this marker not exist? If so, create it.
+                        if (markerSet.findMarker(faction.getTag().replaceAll("&[a-zA-Z1-9]", "") + "_" + warp.getName()) == null) {
+                            markerSet.createMarker(faction.getTag().replaceAll("&[a-zA-Z1-9]", "") + "_" + warp.getName(), warp.getName(),
+                                    warp.getDataLocation().getWorldName(), warp.getDataLocation().getX(), warp.getDataLocation().getY(), warp.getDataLocation().getZ(),
+                                    markerAPI.getMarkerIcon(Config.fWarpMarkerIcon), false);
+                        }
+                        // If this marker does exist, delete it and create another one.
+                        // Is this efficient? Maybe not... But i'm trying my best.
+                        else {
+                            markerSet.findMarker((faction.getTag().replaceAll("&[a-zA-Z1-9]", "") + "_" + warp.getName())).deleteMarker();
+                            markerSet.createMarker(faction.getTag().replaceAll("&[a-zA-Z1-9]", "") + "_" + warp.getName(), warp.getName(),
+                                    warp.getDataLocation().getWorldName(), warp.getDataLocation().getX(), warp.getDataLocation().getY(), warp.getDataLocation().getZ(),
+                                    markerAPI.getMarkerIcon(Config.fWarpMarkerIcon), false);
+                        }
+                    }
+                }
+                else {
+                    continue;
+                }
             }
         }
     }
 
-    public void removeHome(String markerid){
-        if (markerid == null) {
-            logColored("Tried to delete an f home marker but the faction name came back null. Oh well.");
-        }
-        else {
-            markerSet.findMarker(markerid).deleteMarker();
+    public void refreshHomes() {
+        if (Config.showHomes) {
+            GridManager gridManager = GridManager.INSTANCE;
+            FactionManager factionManager = FactionManager.INSTANCE;
+            Set<Faction> allFactions = FactionManager.INSTANCE.getFactions();
+            // Is markerSet null for some reason?
+            if (markerSet == null) {
+                // Try and reinitialize. If it doesn't work, push an error.
+                if (!init()) {
+                    logColored("Failed to initialize FactionsX-BetterDynmap.");
+                    return;
+                }
+                // If it does reinitialize, try refreshing homes again.
+                else {
+                    refreshHomes();
+                }
+            }
+            // For all factions, handle a faction.
+            for (Faction faction : allFactions) {
+                DataLocation homeLocation = faction.getHome();
+                // Does homeLocation exist for this faction?
+                if (homeLocation != null) {
+                    // Does a home marker exist? If not, create one.
+                    if (markerSet.findMarker(faction.getTag().replaceAll("&[a-zA-Z1-9]", "") + "_home") == null) {
+                        markerSet.createMarker(faction.getTag().replaceAll("&[a-zA-Z1-9]", "") + "_home", faction.getTag().replaceAll("&[a-zA-Z1-9]", ""),
+                                homeLocation.getWorldName(), homeLocation.getX(), homeLocation.getY(), homeLocation.getZ(), markerAPI.getMarkerIcon(Config.fHomeMarkerIcon), false);
+                    }
+                    // If it does exist, then delete it and create it again.
+                    else {
+                        markerSet.findMarker(faction.getTag().replaceAll("&[a-zA-Z1-9]", "") + "_home").deleteMarker();
+                        markerSet.createMarker(faction.getTag().replaceAll("&[a-zA-Z1-9]", "") + "_home", faction.getTag().replaceAll("&[a-zA-Z1-9]", ""),
+                                homeLocation.getWorldName(), homeLocation.getX(), homeLocation.getY(), homeLocation.getZ(), markerAPI.getMarkerIcon(Config.fHomeMarkerIcon), false);
+                    }
+                }
+                else {
+                    continue;
+                }
+            }
         }
     }
 
@@ -459,6 +511,12 @@ public class FXBDEngine {
     }
 
     public void shutdown() {
-
+        if (dynmapAPI.getMarkerAPI().getMarkerSet("factionsx") != null) {
+            dynmapAPI.getMarkerAPI().getMarkerSet("factionsx").deleteMarkerSet();
+        }
+        markerSet = null;
+        markerAPI = null;
+        dynmapAPI = null;
+        logColored("FXBD Engine disabled.");
     }
 }
