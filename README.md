@@ -7,6 +7,7 @@ GOALS:
 - Descriptive popup window that includes faction tag, description, members, bank, open status, etc.
 - (PARTIALLY WORKING) Markers for homes and warps
 - Change color of your faction with proper permission node, could be a donator feature.
+- Make asyncronous? Dont really know much about this but i'd figure that with as many loops this addon does it can't hurt to not do it on main thread.
 
 THIS ADDON IS NONFUNCTIONAL AT THE MOMENT...
 but it's coming soon™
