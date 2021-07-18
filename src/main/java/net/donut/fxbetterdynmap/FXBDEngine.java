@@ -378,22 +378,7 @@ public class FXBDEngine {
             // make sure they are in the right order, because if they are not it looks
             // like a complete clusterfuck.
 
-            // Note: this is stolen from StackOverflow LOL
 
-            orderedPoints.add(corners.remove(0)); //Arbitrary starting point
-
-            while (corners.size() > 0) {
-                //Find the index of the closest point (using another method)
-                int nearestIndex=findNearestIndex(orderedPoints.get(orderedPoints.size()-1), corners);
-
-                //Remove from the unorderedList and add to the ordered one
-                orderedPoints.add(corners.remove(nearestIndex));
-            }
-
-            for (Location corner : orderedPoints) {
-                finalXs.add(corner.getX());
-                finalZs.add(corner.getZ());
-            }
 
             //double[] finalXArray = finalXs.stream().mapToDouble(Double::doubleValue).toArray(); //via method reference
             double[] finalXArray = finalXs.stream().mapToDouble(d -> d).toArray(); //identity function, Java unboxes automatically to get the double value
