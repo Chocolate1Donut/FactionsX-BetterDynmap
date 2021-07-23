@@ -6,7 +6,7 @@
 
     <groupId>org.example</groupId>
     <artifactId>FactionsXBetterDynmap</artifactId>
-    <version>v0.5.3-alpha</version>
+    <version>v0.5.4-alpha</version>
 
     <properties>
         <maven.compiler.source>11</maven.compiler.source>

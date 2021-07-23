@@ -7,6 +7,7 @@ import net.prosavage.factionsx.persist.data.FLocation;
 import net.prosavage.factionsx.addonframework.Addon;
 import net.prosavage.factionsx.persist.data.wrappers.DataLocation;
 import net.prosavage.factionsx.persist.data.wrappers.Warp;
+
 import static net.prosavage.factionsx.util.UtilKt.logColored;
 
 import org.bukkit.Bukkit;
@@ -38,6 +39,8 @@ public class FXBDEngine {
     public MarkerSet markerSet;
 
     public Addon fxaapi;
+
+    enum TracerDirection {XPLUS, ZPLUS, XMINUS, ZMINUS}
 
     public boolean init() {
         Plugin dynmap = Bukkit.getPluginManager().getPlugin("dynmap");
@@ -124,8 +127,7 @@ public class FXBDEngine {
                                     markerAPI.getMarkerIcon(Config.fWarpMarkerIcon), false);
                         }
                     }
-                }
-                else {
+                } else {
                     continue;
                 }
             }
@@ -165,8 +167,7 @@ public class FXBDEngine {
                         markerSet.createMarker(faction.getTag().replaceAll("&[a-zA-Z1-9]", "") + "_home", faction.getTag().replaceAll("&[a-zA-Z1-9]", ""),
                                 homeLocation.getWorldName(), homeLocation.getX(), homeLocation.getY(), homeLocation.getZ(), markerAPI.getMarkerIcon(Config.fHomeMarkerIcon), false);
                     }
-                }
-                else {
+                } else {
                     continue;
                 }
             }
@@ -183,211 +184,360 @@ public class FXBDEngine {
         // Get all claims owned by the faction
         Set<FLocation> allChunks = gridManager.getAllClaims(faction);
 
-        // First, we'll figure out which corners we need to know about.
-        ArrayList<Location> corners = null;
+        if (allChunks.size() > 0) {
+            // First, we'll figure out which corners we need to know about.
+            ArrayList<Location> corners = null;
 
-        // Then, we'll use an algorithm to put the corners in a proper order.
-        ArrayList<Location> orderedPoints = new ArrayList<Location>();
+            // Then, we'll use an algorithm to put the corners in a proper order.
+            ArrayList<Location> orderedPoints = new ArrayList<Location>();
 
-        // Finally, we'll deliver the corners to dynmap with two different double arrays.
-        // Later down the line, we convert this to a primitive array.
-        ArrayList<Double> finalXs = new ArrayList<Double>();
-        ArrayList<Double> finalZs = new ArrayList<Double>();
+            // Finally, we'll deliver the corners to dynmap with two different double arrays.
+            // Later down the line, we convert this to a primitive array.
+            ArrayList<Double> finalXs = new ArrayList<Double>();
+            ArrayList<Double> finalZs = new ArrayList<Double>();
 
-        // For this faction, handle every chunk it has.
-        for (FLocation chunk : allChunks) {
-            //logColored("Handling Chunk: " + chunk);
+            // For this faction, handle every chunk it has.
+            for (FLocation chunk : allChunks) {
+                //logColored("Handling Chunk: " + chunk);
 
-            // Get ints from chunk's location.
-            int chunkX = (int) chunk.getX();
-            int chunkZ = (int) chunk.getZ();
+                // Get ints from chunk's location.
+                int chunkX = (int) chunk.getX();
+                int chunkZ = (int) chunk.getZ();
 
-            // Create zero so we can initialize locations easier.
-            Location zero = new Location(chunk.getChunk().getWorld(), 0, 0, 0);
+                // Create zero so we can initialize locations easier.
+                Location zero = new Location(chunk.getChunk().getWorld(), 0, 0, 0);
 
-            // Calculate the coordinates for each corner of the chunk.
-            Location topLeftLocation = new Location(chunk.getChunk().getWorld(), (chunkX * 16), 0, (chunkZ * 16));
-            Location topRightLocation = new Location(chunk.getChunk().getWorld(), (chunkX * 16 + 15), 0, (chunkZ * 16));
-            Location bottomLeftLocation = new Location(chunk.getChunk().getWorld(), (chunkX * 16), 0, (chunkZ * 16 + 15));
-            Location bottomRightLocation = new Location(chunk.getChunk().getWorld(), (chunkX * 16 + 15), 0, (chunkZ * 16 + 15));
+                // Calculate the coordinates for each corner of the chunk.
+                Location topLeftLocation = new Location(chunk.getChunk().getWorld(), (chunkX * 16), 0, (chunkZ * 16));
+                Location topRightLocation = new Location(chunk.getChunk().getWorld(), (chunkX * 16 + 15), 0, (chunkZ * 16));
+                Location bottomLeftLocation = new Location(chunk.getChunk().getWorld(), (chunkX * 16), 0, (chunkZ * 16 + 15));
+                Location bottomRightLocation = new Location(chunk.getChunk().getWorld(), (chunkX * 16 + 15), 0, (chunkZ * 16 + 15));
 
-            // We use these to determine if the corner is one we should care about.
-            boolean isHorizontalAClaim = false;
-            boolean isVerticalAClaim = false;
-            boolean isDiagonalAClaim = false;
+                // We use these to determine if the corner is one we should care about.
+                boolean isHorizontalAClaim = false;
+                boolean isVerticalAClaim = false;
+                boolean isDiagonalAClaim = false;
 
-            // Get Bukkit chunk from FLocation chunk.
-            Chunk bukkitChunk = chunk.getChunk();
+                // Get Bukkit chunk from FLocation chunk.
+                Chunk bukkitChunk = chunk.getChunk();
 
-            // Iterate through every corner of a chunk.
-            for (int i = 1; i <= 4; i++) {
+                // Iterate through every corner of a chunk.
+                for (int i = 1; i <= 4; i++) {
 
-                //logColored("Handling corner " + i + " of chunk.");
+                    //logColored("Handling corner " + i + " of chunk.");
 
-                // Create cornerLocation and testLocation and set it to 0, 0, 0 object.
-                Location cornerLocation = zero;
-                Location testLocation = zero;
-                Chunk testLocationChunk = zero.getChunk();
+                    // Create cornerLocation and testLocation and set it to 0, 0, 0 object.
+                    Location cornerLocation = zero;
+                    Location testLocation = zero;
+                    Chunk testLocationChunk = zero.getChunk();
 
-                // Create variables for determining if the corner is a corner.
-                isDiagonalAClaim = false;
-                isVerticalAClaim = false;
-                isHorizontalAClaim = false;
+                    // Create variables for determining if the corner is a corner.
+                    isDiagonalAClaim = false;
+                    isVerticalAClaim = false;
+                    isHorizontalAClaim = false;
 
-                // Which corner are we working with?
-                // Depending on which one it is, set it to a certain corner's location.
-                switch (i) {
-                    case 1:
-                        cornerLocation = topLeftLocation.clone();
-                        break;
-                    case 2:
-                        cornerLocation = topRightLocation.clone();
-                        break;
-                    case 3:
-                        cornerLocation = bottomRightLocation.clone();
-                        break;
-                    case 4:
-                        cornerLocation = bottomLeftLocation.clone();
-                        break;
-                }
-
-                //logColored("Checking surrounding chunks of corner: " +
-                //        cornerLocation + "in chunk: " + bukkitChunk + " of corner type: " + i);
-
-                if (i == 1 || i == 4) {
-                    testLocation.setX((cornerLocation.clone().getX() - 1));
-                    testLocation.setZ((cornerLocation.clone().getZ()));
-                    testLocationChunk = testLocation.getChunk();
-                    if (gridManager.getFactionAt(testLocationChunk) == faction) {
-                        isHorizontalAClaim = true;
-                    } else {
-                        //logColored("Adjacent claim was not part of my faction.");
+                    // Which corner are we working with?
+                    // Depending on which one it is, set it to a certain corner's location.
+                    switch (i) {
+                        case 1:
+                            cornerLocation = topLeftLocation.clone();
+                            break;
+                        case 2:
+                            cornerLocation = topRightLocation.clone();
+                            break;
+                        case 3:
+                            cornerLocation = bottomRightLocation.clone();
+                            break;
+                        case 4:
+                            cornerLocation = bottomLeftLocation.clone();
+                            break;
                     }
-                }
 
-                if (i == 1) {
-                    testLocation.setX((cornerLocation.clone().getX() - 1));
-                    testLocation.setZ((cornerLocation.clone().getZ() - 1));
-                    testLocationChunk = testLocation.getChunk();
-                    if (gridManager.getFactionAt(testLocationChunk) == faction) {
-                        isDiagonalAClaim = true;
-                    } else {
-                        //logColored("Adjacent claim was not part of my faction.");
+                    //logColored("Checking surrounding chunks of corner: " +
+                    //        cornerLocation + "in chunk: " + bukkitChunk + " of corner type: " + i);
+
+                    // Left
+                    if (i == 1 || i == 4) {
+                        testLocation.setX((cornerLocation.clone().getX() - 1));
+                        testLocation.setZ((cornerLocation.clone().getZ()));
+                        testLocationChunk = testLocation.getChunk();
+                        if (gridManager.getFactionAt(testLocationChunk) == faction) {
+                            isHorizontalAClaim = true;
+                        } else {
+                            //logColored("Adjacent claim was not part of my faction.");
+                        }
                     }
-                }
 
-                if (i == 1 || i == 2) {
-                    testLocation.setX((cornerLocation.clone().getX()));
-                    testLocation.setZ((cornerLocation.clone().getZ() - 1));
-                    testLocationChunk = testLocation.getChunk();
-                    if (gridManager.getFactionAt(testLocationChunk) == faction) {
-                        isVerticalAClaim = true;
-                    } else {
-                        //logColored("Adjacent claim was not part of my faction.");
+                    // Top Left
+                    if (i == 1) {
+                        testLocation.setX((cornerLocation.clone().getX() - 1));
+                        testLocation.setZ((cornerLocation.clone().getZ() - 1));
+                        testLocationChunk = testLocation.getChunk();
+                        if (gridManager.getFactionAt(testLocationChunk) == faction) {
+                            isDiagonalAClaim = true;
+                        } else {
+                            //logColored("Adjacent claim was not part of my faction.");
+                        }
                     }
-                }
 
-                if (i == 2) {
-                    testLocation.setX((cornerLocation.clone().getX() + 1));
-                    testLocation.setZ((cornerLocation.clone().getZ() - 1));
-                    testLocationChunk = testLocation.getChunk();
-                    if (gridManager.getFactionAt(testLocationChunk) == faction) {
-                        isDiagonalAClaim = true;
-                    } else {
-                        //logColored("Adjacent claim was not part of my faction.");
+                    // Top
+                    if (i == 1 || i == 2) {
+                        testLocation.setX((cornerLocation.clone().getX()));
+                        testLocation.setZ((cornerLocation.clone().getZ() - 1));
+                        testLocationChunk = testLocation.getChunk();
+                        if (gridManager.getFactionAt(testLocationChunk) == faction) {
+                            isVerticalAClaim = true;
+                        } else {
+                            //logColored("Adjacent claim was not part of my faction.");
+                        }
                     }
-                }
 
-                if (i == 2 || i == 3) {
-                    testLocation.setX((cornerLocation.clone().getX() + 1));
-                    testLocation.setZ((cornerLocation.clone().getZ()));
-                    testLocationChunk = testLocation.getChunk();
-                    if (gridManager.getFactionAt(testLocationChunk) == faction) {
-                        isHorizontalAClaim = true;
-                    } else {
-                        //logColored("Adjacent claim was not part of my faction.");
+                    // Top Right
+                    if (i == 2) {
+                        testLocation.setX((cornerLocation.clone().getX() + 1));
+                        testLocation.setZ((cornerLocation.clone().getZ() - 1));
+                        testLocationChunk = testLocation.getChunk();
+                        if (gridManager.getFactionAt(testLocationChunk) == faction) {
+                            isDiagonalAClaim = true;
+                        } else {
+                            //logColored("Adjacent claim was not part of my faction.");
+                        }
                     }
-                }
 
-                if (i == 3) {
-                    testLocation.setX((cornerLocation.clone().getX() + 1));
-                    testLocation.setZ((cornerLocation.clone().getZ() + 1));
-                    testLocationChunk = testLocation.getChunk();
-                    if (gridManager.getFactionAt(testLocationChunk) == faction) {
-                        isDiagonalAClaim = true;
-                    } else {
-                        //logColored("Adjacent claim was not part of my faction.");
+                    // Right
+                    if (i == 2 || i == 3) {
+                        testLocation.setX((cornerLocation.clone().getX() + 1));
+                        testLocation.setZ((cornerLocation.clone().getZ()));
+                        testLocationChunk = testLocation.getChunk();
+                        if (gridManager.getFactionAt(testLocationChunk) == faction) {
+                            isHorizontalAClaim = true;
+                        } else {
+                            //logColored("Adjacent claim was not part of my faction.");
+                        }
                     }
-                }
 
-                if (i == 4 || i == 3) {
-                    testLocation.setX((cornerLocation.clone().getX()));
-                    testLocation.setZ((cornerLocation.clone().getZ() + 1));
-                    testLocationChunk = testLocation.getChunk();
-                    if (gridManager.getFactionAt(testLocationChunk) == faction) {
-                        isVerticalAClaim = true;
-                    } else {
-                        //logColored("Adjacent claim was not part of my faction.");
+                    // Bottom Right
+                    if (i == 3) {
+                        testLocation.setX((cornerLocation.clone().getX() + 1));
+                        testLocation.setZ((cornerLocation.clone().getZ() + 1));
+                        testLocationChunk = testLocation.getChunk();
+                        if (gridManager.getFactionAt(testLocationChunk) == faction) {
+                            isDiagonalAClaim = true;
+                        } else {
+                            //logColored("Adjacent claim was not part of my faction.");
+                        }
                     }
-                }
 
-                if (i == 4) {
-                    testLocation.setX((cornerLocation.clone().getX() - 1));
-                    testLocation.setZ((cornerLocation.clone().getZ() + 1));
-                    testLocationChunk = testLocation.getChunk();
-                    if (gridManager.getFactionAt(testLocationChunk) == faction) {
-                        isDiagonalAClaim = true;
-                    } else {
-                        //logColored("Adjacent claim was not part of my faction.");
+                    // Bottom
+                    if (i == 4 || i == 3) {
+                        testLocation.setX((cornerLocation.clone().getX()));
+                        testLocation.setZ((cornerLocation.clone().getZ() + 1));
+                        testLocationChunk = testLocation.getChunk();
+                        if (gridManager.getFactionAt(testLocationChunk) == faction) {
+                            isVerticalAClaim = true;
+                        } else {
+                            //logColored("Adjacent claim was not part of my faction.");
+                        }
                     }
-                }
 
-                if (isDiagonalAClaim && isVerticalAClaim && isHorizontalAClaim) {
-                    // Do nothing because its not a corner.
-                } else if (!isDiagonalAClaim && isVerticalAClaim && isHorizontalAClaim) {
-                    if (corners == null) {
-                        corners = new ArrayList<>(Set.of(cornerLocation));
+                    // Bottom Left
+                    if (i == 4) {
+                        testLocation.setX((cornerLocation.clone().getX() - 1));
+                        testLocation.setZ((cornerLocation.clone().getZ() + 1));
+                        testLocationChunk = testLocation.getChunk();
+                        if (gridManager.getFactionAt(testLocationChunk) == faction) {
+                            isDiagonalAClaim = true;
+                        } else {
+                            //logColored("Adjacent claim was not part of my faction.");
+                        }
                     }
-                    else {
-                        corners.add(cornerLocation);
+
+                    // Determine from our results if the corner is one we should
+                    // care about.
+                    if (isDiagonalAClaim && isVerticalAClaim && isHorizontalAClaim) {
+                        // Do nothing because its not a corner.
+                    } else if (!isDiagonalAClaim && isVerticalAClaim && isHorizontalAClaim) {
+                        if (corners == null) {
+                            corners = new ArrayList<>(Set.of(cornerLocation));
+                        } else {
+                            corners.add(cornerLocation);
+                        }
+                    } else if (!isDiagonalAClaim && isVerticalAClaim && !isHorizontalAClaim) {
+
+                    } else if (!isDiagonalAClaim && !isVerticalAClaim && isHorizontalAClaim) {
+
+                    } else if (!isDiagonalAClaim && !isVerticalAClaim && !isHorizontalAClaim) {
+                        if (corners == null) {
+                            //logColored("List of corners is null, so lets set it to something first.");
+                            corners = new ArrayList<>(Set.of(cornerLocation));
+                        } else {
+                            //logColored("List of corners already has stuff in it, so lets add to it.");
+                            corners.add(cornerLocation);
+                        }
                     }
-                } else if (!isDiagonalAClaim && isVerticalAClaim && !isHorizontalAClaim) {
 
-                } else if (!isDiagonalAClaim && !isVerticalAClaim && isHorizontalAClaim) {
+                    //logColored("D: " + isDiagonalAClaim + " V: " + isVerticalAClaim + " H: " + isHorizontalAClaim);
 
-                } else if (!isDiagonalAClaim && !isVerticalAClaim && !isHorizontalAClaim) {
-                   if (corners == null) {
-                       //logColored("List of corners is null, so lets set it to something first.");
-                       corners = new ArrayList<>(Set.of(cornerLocation));
-                   }
-                   else {
-                       //logColored("List of corners already has stuff in it, so lets add to it.");
-                       corners.add(cornerLocation);
-                   }
                 }
-
-                //logColored("D: " + isDiagonalAClaim + " V: " + isVerticalAClaim + " H: " + isHorizontalAClaim);
-
             }
-        }
 
-        //logColored("corners: "+corners);
-        // Does the faction even have any claims?
-        if (corners != null) {
-            // Now that we have all the actual corners of our faction, we want to
-            // make sure they are in the right order, because if they are not it looks
-            // like a complete clusterfuck.
+            logColored("Unsorted corners: " + corners.toString());
 
-            // Note: this is stolen from StackOverflow LOL
+            // Create currentCorner to store where we are at right now
+            Location currentCorner = corners.stream().findFirst().get();
 
-            orderedPoints.add(corners.remove(0)); //Arbitrary starting point
+            // Create location we'll be testing at.
+            Location testLocation = currentCorner.clone();
+
+            TracerDirection currDirection = TracerDirection.XMINUS;
+
+            boolean endOfShape = false;
+
+            Object objToRemove = new Location(corners.stream().findFirst().get().getWorld(), 0, 0,0 );
 
             while (corners.size() > 0) {
-                //Find the index of the closest point (using another method)
-                int nearestIndex=findNearestIndex(orderedPoints.get(orderedPoints.size()-1), corners);
-
-                //Remove from the unorderedList and add to the ordered one
-                orderedPoints.add(corners.remove(nearestIndex));
+                if (endOfShape) {
+                    switch (currDirection) {
+                        case XMINUS:
+                            currDirection = TracerDirection.ZMINUS;
+                            logColored("Changing direction to ZMINUS");
+                            break;
+                        case ZMINUS:
+                            currDirection = TracerDirection.XPLUS;
+                            logColored("Changing direction to XPLUS");
+                            break;
+                        case XPLUS:
+                            currDirection = TracerDirection.ZPLUS;
+                            logColored("Changing direction to ZPLUS");
+                            break;
+                        case ZPLUS:
+                            currDirection = TracerDirection.XMINUS;
+                            logColored("Changing direction to XMINUS");
+                            break;
+                    }
+                }
+                switch (currDirection) {
+                    case XMINUS:
+                        testLocation = currentCorner.clone();
+                        while (gridManager.getFactionAt(testLocation.getChunk()) == faction) {
+                            testLocation.setX(testLocation.clone().getX() - 15);
+                            testLocation.setZ(testLocation.clone().getZ());
+                            logColored("Testing at location " +testLocation+" from currentCorner "+currentCorner);
+                            for (Location corner : corners) {
+                                if (corner.getX() == testLocation.getX() && corner.getZ() == testLocation.getZ()) {
+                                    orderedPoints.add(corner);
+                                    currentCorner = corner.clone();
+                                    objToRemove = corner;
+                                    break;
+                                }
+                            }
+                            corners.remove(objToRemove);
+                            testLocation.setX(testLocation.clone().getX() - 1);
+                            testLocation.setZ(testLocation.clone().getZ());
+                            logColored("Testing at location " +testLocation+" from currentCorner "+currentCorner);
+                            for (Location corner : corners) {
+                                if (corner.getX() == testLocation.getX() && corner.getZ() == testLocation.getZ()) {
+                                    orderedPoints.add(corner);
+                                    currentCorner = corner.clone();
+                                    objToRemove = corner;
+                                    break;
+                                }
+                            }
+                            corners.remove(objToRemove);
+                        }
+                        endOfShape = true;
+                        break;
+                    case ZMINUS:
+                        testLocation = currentCorner.clone();
+                        while (gridManager.getFactionAt(testLocation.getChunk()) == faction) {
+                            testLocation.setX(testLocation.clone().getX());
+                            testLocation.setZ(testLocation.clone().getZ() - 15);
+                            logColored("Testing at location " +testLocation+" from currentCorner "+currentCorner);
+                            for (Location corner : corners) {
+                                if (corner.getX() == testLocation.getX() && corner.getZ() == testLocation.getZ()) {
+                                    orderedPoints.add(corner);
+                                    currentCorner = corner.clone();
+                                    objToRemove = corner;
+                                    break;
+                                }
+                            }
+                            corners.remove(objToRemove);
+                            testLocation.setX(testLocation.clone().getX());
+                            testLocation.setZ(testLocation.clone().getZ() - 1);
+                            logColored("Testing at location " +testLocation+" from currentCorner "+currentCorner);
+                            for (Location corner : corners) {
+                                if (corner.getX() == testLocation.getX() && corner.getZ() == testLocation.getZ()) {
+                                    orderedPoints.add(corner);
+                                    currentCorner = corner.clone();
+                                    objToRemove = corner;
+                                    break;
+                                }
+                            }
+                            corners.remove(objToRemove);
+                        }
+                        endOfShape = true;
+                        break;
+                    case XPLUS:
+                        testLocation = currentCorner.clone();
+                        while (gridManager.getFactionAt(testLocation.getChunk()) == faction) {
+                            testLocation.setX(testLocation.clone().getX() + 15);
+                            testLocation.setZ(testLocation.clone().getZ());
+                            logColored("Testing at location " +testLocation+" from currentCorner "+currentCorner);
+                            for (Location corner : corners) {
+                                if (corner.getX() == testLocation.getX() && corner.getZ() == testLocation.getZ()) {
+                                    orderedPoints.add(corner);
+                                    currentCorner = corner.clone();
+                                    objToRemove = corner;
+                                    break;
+                                }
+                            }
+                            corners.remove(objToRemove);
+                            testLocation.setX(testLocation.clone().getX() + 15);
+                            testLocation.setZ(testLocation.clone().getZ());
+                            logColored("Testing at location " +testLocation+" from currentCorner "+currentCorner);
+                            for (Location corner : corners) {
+                                if (corner.getX() == testLocation.getX() && corner.getZ() == testLocation.getZ()) {
+                                    orderedPoints.add(corner);
+                                    currentCorner = corner.clone();
+                                    objToRemove = corner;
+                                    break;
+                                }
+                            }
+                            corners.remove(objToRemove);
+                        }
+                        endOfShape = true;
+                        break;
+                    case ZPLUS:
+                        testLocation = currentCorner.clone();
+                        while (gridManager.getFactionAt(testLocation.getChunk()) == faction) {
+                            testLocation.setX(testLocation.clone().getX());
+                            testLocation.setZ(testLocation.clone().getZ() + 15);
+                            logColored("Testing at location " +testLocation+" from currentCorner "+currentCorner);
+                            for (Location corner : corners) {
+                                if (corner.getX() == testLocation.getX() && corner.getZ() == testLocation.getZ()) {
+                                    orderedPoints.add(corner);
+                                    currentCorner = corner.clone();
+                                    objToRemove = corner;
+                                    break;
+                                }
+                            }
+                            corners.remove(objToRemove);
+                            testLocation.setX(testLocation.clone().getX());
+                            testLocation.setZ(testLocation.clone().getZ() + 1);
+                            logColored("Testing at location " +testLocation+" from currentCorner "+currentCorner);
+                            for (Location corner : corners) {
+                                if (corner.getX() == testLocation.getX() && corner.getZ() == testLocation.getZ()) {
+                                    orderedPoints.add(corner);
+                                    currentCorner = corner.clone();
+                                    objToRemove = corner;
+                                    break;
+                                }
+                            }
+                            corners.remove(objToRemove);
+                        }
+                        endOfShape = true;
+                        break;
+                }
             }
 
             for (Location corner : orderedPoints) {
@@ -412,10 +562,6 @@ public class FXBDEngine {
                 }
             }
 
-            //double[] finalXArray = finalXs.stream().mapToDouble(Double::doubleValue).toArray(); //via method reference
-            //double[] finalXArray = finalXs.stream().mapToDouble(d -> d).toArray(); //identity function, Java unboxes automatically to get the double value
-            //double[] finalZArray = finalZs.stream().mapToDouble(Double::doubleValue).toArray(); //via method reference
-            //double[] finalZArray = finalZs.stream().mapToDouble(d -> d).toArray(); //identity function, Java unboxes automatically to get the double value
             areaMarker.setCornerLocations(finalXArray, finalZArray);
             areaMarker.setBoostFlag(true);
             areaMarker.setDescription
@@ -435,38 +581,37 @@ public class FXBDEngine {
                             "| <span style=\"color:#008000\">animals</span> " +
                             "| <span style=\"color:#008000\">pvp</span>"
                     );
-        }
-        else {
-            logColored(faction + " doesn't have any claims to display.");
+        } else {
+            logColored(faction + " didn't have any claims to show.");
         }
     }
 
 
-void Test() {
-    ArrayList<Location> originalPoints = new ArrayList<Location>();
-    ArrayList<Location> orderedPoints = new ArrayList<Location>();
+    void Test() {
+        ArrayList<Location> originalPoints = new ArrayList<Location>();
+        ArrayList<Location> orderedPoints = new ArrayList<Location>();
 
-    orderedPoints.add(originalPoints.remove(0)); //Arbitrary starting point
+        orderedPoints.add(originalPoints.remove(0)); //Arbitrary starting point
 
-    while (originalPoints.size() > 0) {
-        //Find the index of the closest point (using another method)
-        int nearestIndex=findNearestIndex(orderedPoints.get(orderedPoints.size()-1), originalPoints);
+        while (originalPoints.size() > 0) {
+            //Find the index of the closest point (using another method)
+            int nearestIndex = findNearestIndex(orderedPoints.get(orderedPoints.size() - 1), originalPoints);
 
-        //Remove from the unorderedList and add to the ordered one
-        orderedPoints.add(originalPoints.remove(nearestIndex));
+            //Remove from the unorderedList and add to the ordered one
+            orderedPoints.add(originalPoints.remove(nearestIndex));
+        }
     }
-}
 
-    int findNearestIndex (Location thisPoint, ArrayList<Location> listToSearch) {
-        double nearestDistSquared=Double.POSITIVE_INFINITY;
+    int findNearestIndex(Location thisPoint, ArrayList<Location> listToSearch) {
+        double nearestDistSquared = Double.POSITIVE_INFINITY;
         int nearestIndex = 9999;
-        for (int i=0; i< listToSearch.size(); i++) {
+        for (int i = 0; i < listToSearch.size(); i++) {
             Location point2 = listToSearch.get(i);
-            double distsq = (thisPoint.getX() - point2.getX())*(thisPoint.getX() - point2.getX())
-                    + (thisPoint.getZ() - point2.getZ())*(thisPoint.getZ() - point2.getZ());
-            if(distsq < nearestDistSquared) {
+            double distsq = (thisPoint.getX() - point2.getX()) * (thisPoint.getX() - point2.getX())
+                    + (thisPoint.getZ() - point2.getZ()) * (thisPoint.getZ() - point2.getZ());
+            if (distsq < nearestDistSquared) {
                 nearestDistSquared = distsq;
-                nearestIndex=i;
+                nearestIndex = i;
             }
         }
         return nearestIndex;
